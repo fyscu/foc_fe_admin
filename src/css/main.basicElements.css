@@ -1,0 +1,199 @@
+﻿/*#region Table*/
+:where(div[role="dialog"], #root) td{
+    padding: .25rem;
+    margin: 0;
+    border-top: var(--border);
+    border-bottom: var(--border);
+    text-align: center;
+}
+th{
+    font-weight: normal;
+}
+:where(div[role="dialog"], #root) td:not(:nth-child(1)):not(:nth-last-child(1)){
+    border: var(--border);
+}
+/*#endregion*/
+/*#region a*/
+a{
+    -webkit-user-drag: auto;
+    cursor: pointer;
+    transition: color .2s, text-decoration .2s;
+    text-decoration: none;
+    color: var(--c-link);
+}
+:is(a:visited, a:-webkit-any-link){
+    cursor: pointer;
+    transition: color .2s, text-decoration .2s;
+    text-decoration: none;
+    color: var(--c-link);
+}
+/*上下两个不能合在一起，合在一起后 **Google Chrome 就会拒绝识别它们……*/
+:is(a:-moz-any-link, a:any-link){
+    cursor: pointer;
+    transition: color .1s, text-decoration .1s;
+    text-decoration: none;
+    color: var(--c-link);
+}
+a:hover{
+    text-decoration: underline;
+    text-underline-offset: .2rem;
+}
+a:active{
+    color: var(--c-link-d);
+}
+/*#endregion*/
+/*#region Button*/
+:where(div[role="dialog"], #root) button{
+    appearance: auto;
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+    box-sizing: content-box;
+    border: none;
+    border-radius: 0;
+}
+/*#endregion*/
+/*#region Headings*/
+h1{
+    font-size: 2.7em;
+    margin-block-start: .4em;
+    margin-block-end: .4em;
+    padding: 0;
+    font-weight: bold;
+    font-weight: 700;
+}
+h2{
+    font-size: 2.65em;
+    margin-block-start: .4em;
+    margin-block-end: .4em;
+    margin-inline-start: .3em;
+    padding: 0;
+    font-weight: bold;
+    font-weight: 700;
+}
+h3{
+    font-size: 2.3em;
+    margin-block-start: .35em;
+    margin-block-end: .35em;
+    padding: 0;
+    font-weight: bold;
+    font-weight: 700;
+}
+h4{
+    font-size: 2em;
+    margin-block-start: .3em;
+    margin-block-end: .3em;
+    padding: 0;
+    font-weight: bold;
+    font-weight: 700;
+}
+h5{
+    font-size: 1.6em;
+    margin-block-start: 1.6em;
+    margin-block-end: .4em;
+    margin-inline-start: .2em;
+    padding: 0;
+    font-weight: bold;
+    font-weight: 700;
+}
+h5 > small{
+    display: block;
+    font-size: 0.5em;
+    font-weight: normal;
+}
+h6{
+    font-size: 1.4em;
+    margin-block-start: .15em;
+    margin-block-end: .15em;
+    padding: 0;
+    font-weight: bold;
+    font-weight: 700;
+}
+/*#endregion*/
+p{
+    display: block;
+    margin: 0;
+    /*缩进估计非常难搞，需要开发扩展，太不兼容了*/
+    /*text-indent: 2em;*/
+    line-height: 1.5em;
+}
+hr{
+    height: .125rem;
+    width: 98%;
+    margin-block-start: .5em;
+    margin-block-end: .5em;
+    padding: 0;
+    border: none;
+    background-color: var(--c-grey-4);
+}
+code{
+    font-family: monospace;
+    font-size: 1.1em;
+    padding-inline-start: .25em;
+    padding-inline-end: .25em;
+    padding-block-start: .2em;
+    padding-block-end: .15em;
+    margin-inline-start: .15em;
+    margin-inline-end: .15em;
+    border-radius: .3em;
+    background-color: var(--c-black-tra);
+    vertical-align: baseline;
+}
+em{
+    font-style: italic;
+}
+strong{
+    font-weight: bold;
+    font-weight: 700;
+}
+u{
+    text-decoration: underline;
+    text-underline-offset: .25rem;
+}
+s{
+    text-decoration: line-through;
+}
+blockquote{
+    margin: 0;
+    padding: 0;
+    margin-inline-start: .2em;
+    padding-inline-start: .8em;
+    margin-block-start: .5em;
+    margin-block-end: .5em;
+    border-left: solid .25em var(--c-grey-4);
+    line-height: 1.5em;
+}
+/*#region ul*/
+ul{
+    display: block;
+    margin: 0;
+    padding: 0;
+    margin-block-start: .4em;
+    margin-block-end: .4em;
+    margin-inline-start: .6em;
+    padding-inline-start: .6em;
+}
+li{
+    line-height: 1.5em;
+}
+/*#region remirror特性消除
+li > p{
+    text-indent: 0;
+}
+p:has(> div.remirror-resizable-view){
+    text-indent: 0;
+}
+/*#endregion*/
+/**30层，还敢往下嵌套的直接下地狱吧*/
+ul, ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul{
+    list-style-type: disc;
+}
+ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul{
+    list-style-type: circle;
+}
+ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul, ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul > li > ul{
+    list-style-type: square;
+}
+/*#endregion*/

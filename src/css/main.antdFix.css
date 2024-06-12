@@ -1,0 +1,3 @@
+﻿:is(.ant-picker-dropdown.ant-picker-dropdown.ant-picker-dropdown, .ant-picker.ant-picker){
+    pointer-events: all;
+}
