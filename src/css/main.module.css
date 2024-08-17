@@ -12,7 +12,10 @@
     -webkit-user-drag: none;
 }
 .fullScreen{
-    width: 100dvw;
+    display: block;
+    height: 100vh;/*兼容*/
     height: 100dvh;
-    
+    width: 100vw;/*兼容*/
+    width: 100dvw;
+    overflow: clip;
 }

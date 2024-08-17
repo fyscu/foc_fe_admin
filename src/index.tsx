@@ -6,18 +6,18 @@ import "./css/main.varibles.css";
 import "./css/main.basicElements.css";
 import "./css/main.antdFix.css";
 import App from "./components/App";
-import localforage from "localforage";
 import meta from "./meta";
 
 if("serviceWorker" in window.navigator) window.navigator.serviceWorker.register("serviceworker.js");
-else if(await localforage.getItem("alerted-no-offline") === null){
-    localforage.setItem("alerted-no-offline", true);
+else if(localStorage.getItem("alerted-no-offline") === null){
+    localStorage.setItem("alerted-no-offline", "true");
     alert("您的浏览器不支持离线使用本应用。");
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 export async function load(){
     root.render(<React.StrictMode><App key={Date.now()} /></React.StrictMode>);
+    console.log("???");
     return "重新加载完毕" as const;
 }
 load();
@@ -31,7 +31,7 @@ if(meta.dev) Object.defineProperties(window, {
     },
     "删库跑路": {
         get(){
-            localforage.clear();
+            localStorage.clear();
             load();
             return 666;
         }
