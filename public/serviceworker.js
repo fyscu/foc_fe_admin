@@ -1,5 +1,5 @@
 ﻿/*eslint-disable*/
-const cacheName = "timetable", preCacheFiles = [
+const cacheName = "foc_fe_admin", preCacheFiles = [
     //没有被引用但很可能需要的文件
 ];
 self.addEventListener("install", ()=>{self.skipWaiting();});

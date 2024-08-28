@@ -1,5 +1,6 @@
-﻿const _export = {
-    version: "0.1.0",
-    dev: true
+﻿const meta = {
+    version: "0.3.0",
+    dev: true,
+    date: "2024.8.27"
 } as const;
-export default _export;
+export default meta;

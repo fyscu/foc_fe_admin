@@ -1,14 +1,17 @@
 {
   "name": "foc_fe_admin",
+  "homepage": "/",
   "version": "0.1.0",
   "author": "LJM12914",
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
+    "@ant-design/pro-components": "^2.7.15",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "antd": "^5.18.0",
     "immer": "^10.1.1",
+    "localforage": "^1.10.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "^5.0.1",

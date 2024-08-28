@@ -1,0 +1,40 @@
+{
+    "name": "Feiyang On Cloud Admin Page",
+    "short_name": "FOC_admin",
+    "description": "Admin page for Feiyang On Cloud system.",
+    "start_url": "/",
+    "lang": "zh-CN",
+    "orientation": "natural",
+    "display": "standalone",
+    "scope": "/",
+    "id": "/",
+    "prefer_related_applications": false,
+    "theme_color": "#2383E2",
+    "background_color": "#2383E2",
+    "protocol_handlers": [
+        {
+            "protocol": "web+foc",
+            "url": "?url=%s"
+        }
+    ],
+    "icons": [
+        {
+            "src": "icons/512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/2560.png",
+            "sizes": "2560x2560",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/2560_mask.png",
+            "sizes": "2560x2560",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
