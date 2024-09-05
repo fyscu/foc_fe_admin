@@ -23,8 +23,8 @@ export default function App(){
             setLoggedIn(false);
             setLoading(false);
             const
-                username = await localforage.getItem("username"),
-                password = await localforage.getItem("username");
+                username = await localforage.getItem<string>("username"),
+                password = await localforage.getItem<string>("password");
             if(username && password){
 
             }
