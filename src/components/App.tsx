@@ -32,7 +32,6 @@ export default function App(){
             localforage.removeItem("access_token");
         };
     useEffect(()=>{
-        //github desktop 测试
         (async ()=>{
             const result = await (await fetch(`${config.api}/v1/admin/getopenids`, {
                 method: "GET",
