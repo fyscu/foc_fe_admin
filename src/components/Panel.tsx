@@ -1,13 +1,14 @@
 ﻿import React, { Component as Cp } from "react";
 import mainStyles from "../css/main.module.css";
-import config from "../config";
 import { Button, ConfigProvider, Menu, Modal } from "antd";
 import { ItemType, MenuItemType } from "antd/es/menu/interface";
 import { BarChartOutlined, FlagOutlined, IdcardOutlined, UserOutlined } from "@ant-design/icons";
-import localforage from "localforage";
 import meta from "../meta";
 import { MenuInfo } from "rc-menu/lib/interface";
 import UserManage from "./UserManage/UserManage";
+import IssueManage from "./IssueManage/IssueManage";
+import EventManage from "./EventManage/EventManage";
+import Statistics from "./Statistics/Statistics";
 
 type Props = {
     ATFailCallBack :()=>void;
@@ -94,11 +95,15 @@ export default class Panel extends Cp<Props, State>{
                             <p>日期：{meta.date}</p>
                             <p>开发版：{meta.dev ? "true" : "false"}</p>
                             <p>开发者：<a href="//i.ljm.im" target="_blank">LJM12914</a></p>
+                            
                             <p><a href="//fyscu.com" target="_blank">四川大学飞扬俱乐部</a><a href="//lab.fyscu.com" target="_blank">研发部</a> 出品</p>
                         </Modal>
                     </div>
                 </div>
                 {this.state.currentKey === "users" ? <UserManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "issues" ? <IssueManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
             </div>
         );
     }

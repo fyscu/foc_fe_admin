@@ -1,4 +1,4 @@
 ﻿const config = {
-    api: "https://fyapi2.wjlo.cc"
+    api: "https://focapi.feiyang.ac.cn"
 } as const;
 export default config;

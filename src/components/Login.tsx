@@ -28,8 +28,8 @@ export default function Login(props :Props){
     useEffect(()=>{
         (async ()=>{
             const
-                username = await localforage.getItem("username"),
-                password = await localforage.getItem("username");
+                username = await localforage.getItem<string>("username"),
+                password = await localforage.getItem<string>("password");
             if(username && password){
                 ref.current?.setFieldValue("username", username);
                 ref.current?.setFieldValue("password", password);
@@ -63,7 +63,7 @@ export default function Login(props :Props){
     return(
         <div>
             {contextHolder}
-            <LoginForm formRef={ref} onFinish={finish} title="云上飞扬" subTitle="飞扬俱乐部线上管理系统后台">
+            <LoginForm logo="" formRef={ref} onFinish={finish} title="云上飞扬" subTitle="飞扬俱乐部线上管理系统后台">
                 <ProFormText rules={[{required: true, message: "请输入用户名！"}]} name="username" placeholder="用户名" fieldProps={{
                     size: "large",
                     prefix: <UserOutlined />
