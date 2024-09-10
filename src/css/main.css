@@ -5,7 +5,6 @@
     -moz-osx-font-smoothing: grayscale;
     font-smooth: always;
     transition: background-color .1s;
-    line-height: normal;
 }
 ::selection{
     background-color: var(--c-selection);

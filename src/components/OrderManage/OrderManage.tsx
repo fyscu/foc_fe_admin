@@ -11,7 +11,7 @@ type State = {
 };
 
 /**@once */
-export default class IssueManage extends Cp<Props, State>{
+export default class OrderManage extends Cp<Props, State>{
     constructor(props :Props){
         super(props);
     }
@@ -20,7 +20,7 @@ export default class IssueManage extends Cp<Props, State>{
     }
     render() :React.ReactNode{
         return(
-            <div>issue</div>
+            <div>工单管理</div>
         );
     }
 }

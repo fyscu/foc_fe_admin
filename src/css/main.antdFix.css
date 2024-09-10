@@ -1,3 +1,17 @@
 ﻿/*:is(.ant-picker-dropdown.ant-picker-dropdown.ant-picker-dropdown, .ant-picker.ant-picker){
     pointer-events: all;
 }*/
+.ant-pagination a{
+    display: inline !important;
+}
+.ant-pro-card-body.ant-pro-card-body{
+    padding-left: 0;
+    padding-right: 0;
+}
+.ant-table{
+    height: calc(100dvh - 40px - 10rem);
+    overflow-y: auto;
+}
+.ant-pro-card{
+    height: 100%;
+}

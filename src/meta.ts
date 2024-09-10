@@ -1,6 +1,6 @@
 ﻿const meta = {
-    version: "0.4.0",
+    version: "0.6.0",
     dev: true,
-    date: "2024.8.27"
+    date: "2024.9.10"
 } as const;
 export default meta;

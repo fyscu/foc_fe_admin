@@ -15,7 +15,7 @@ type formData = {
     remember :boolean;
 };
 
-type LoginResponse = {
+export type LoginResponse = {
     success :boolean;
     access_token :string;
     message :string;
@@ -72,7 +72,7 @@ export default function Login(props :Props){
                     size: "large",
                     prefix: <LockOutlined />
                 }} />
-                <ProFormCheckbox name="remember" valuePropName="checked">记住账户信息</ProFormCheckbox>
+                <ProFormCheckbox name="remember" valuePropName="checked">以后自动登录</ProFormCheckbox>
             </LoginForm>
         </div>
     );

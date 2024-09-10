@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
 import mainStyles from "../css/main.module.css";
-import Login from "./Login";
+import Login, { LoginResponse } from "./Login";
 import { ConfigProvider, message, Spin, theme } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import config from "../config";
 import Panel from "./Panel";
 import zhCN from 'antd/locale/zh_CN';
 import localforage from "localforage";
+import { load } from "../index";
 
 /**@once */
 export default function App(){
@@ -15,31 +16,41 @@ export default function App(){
         [loading, setLoading] = useState(true),
         [messageAPI, contextHolder] = message.useMessage(),
         loginSucceed = (accessToken :string)=>{
-            setLoggedIn(true);
             setLoading(false);
+            setLoggedIn(true);
             localforage.setItem("access_token", accessToken);
         },
-        ATFail = async ()=>{
+        tryRelogin = async (message? :string)=>{
             setLoggedIn(false);
-            setLoading(false);
+            setLoading(true);
             const
                 username = await localforage.getItem<string>("username"),
                 password = await localforage.getItem<string>("password");
             if(username && password){
-
+                const response :LoginResponse = await (await fetch(`${config.api}/v1/admin/login`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({username, password})
+                })).json();
+                if(response.success){
+                    loginSucceed(response.access_token);
+                    //load();
+                }
+                else{
+                    messageAPI.open({
+                        type: "error",
+                        content: response.message
+                    });
+                    messageAPI.open({
+                        type: "warning",
+                        content: "使用保存的账户信息登录失败，请检查！"
+                    });
+                }
             }
-            messageAPI.error("登录已过期");
-            localforage.removeItem("access_token");
+            else messageAPI.error(message ?? "登录已过期");
         };
     useEffect(()=>{
         (async ()=>{
-            const result = await (await fetch(`${config.api}/v1/admin/getopenids`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer`
-                }
-            })).json();
             const AT = await localforage.getItem("access_token");
             if(AT !== null){
                 const result = await (await fetch(`${config.api}/v1/admin/getopenids`, {
@@ -49,13 +60,17 @@ export default function App(){
                         "Authorization": `Bearer ${AT}`
                     }
                 })).json();
-                setLoggedIn(!result.error);
-                setLoading(false);
+                if(result.error){
+                    if(await localforage.getItem<string>("username") && await localforage.getItem<string>("password")) tryRelogin();
+                    else setLoggedIn(false);
+                }
+                else setLoggedIn(true);
             }
             else{
-                setLoggedIn(false);
-                setLoading(false);
+                if(await localforage.getItem<string>("username") && await localforage.getItem<string>("password")) tryRelogin();
+                else setLoggedIn(false);
             }
+            setLoading(false);
         })();
     });
     return(
@@ -71,6 +86,9 @@ export default function App(){
                     itemHeight: "3rem",
                     itemBg: "var(--c-grey--5)",
                     fontSize: 15
+                },
+                Table: {
+                    cellPaddingBlock: 6
                 }
             }
         }}>
@@ -80,7 +98,7 @@ export default function App(){
                 alignItems: "center",
                 justifyContent: "center"
             }}>
-                {loading ? null : loggedIn ? <Panel ATFailCallBack={ATFail} /> : <Login succeedCallBack={loginSucceed}/>}
+                {loading ? null : loggedIn ? <Panel ATFailCallBack={tryRelogin} /> : <Login succeedCallBack={loginSucceed} />}
                 {loading ? <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} /> : null}
             </div>
         </ConfigProvider>

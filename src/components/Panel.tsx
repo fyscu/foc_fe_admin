@@ -6,12 +6,12 @@ import { BarChartOutlined, FlagOutlined, IdcardOutlined, UserOutlined } from "@a
 import meta from "../meta";
 import { MenuInfo } from "rc-menu/lib/interface";
 import UserManage from "./UserManage/UserManage";
-import IssueManage from "./IssueManage/IssueManage";
+import OrderManage from "./OrderManage/OrderManage";
 import EventManage from "./EventManage/EventManage";
 import Statistics from "./Statistics/Statistics";
 
 type Props = {
-    ATFailCallBack :()=>void;
+    ATFailCallBack :(message?: string)=>void;
 };
 
 type State = {
@@ -63,7 +63,7 @@ export default class Panel extends Cp<Props, State>{
             }}>
                 <Menu className={mainStyles.noselect}
                     style={{
-                        width: "11rem",
+                        width: "10rem",
                         height: "100dvh"
                     }}
                     defaultSelectedKeys={["users"]}
@@ -101,7 +101,7 @@ export default class Panel extends Cp<Props, State>{
                     </div>
                 </div>
                 {this.state.currentKey === "users" ? <UserManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
-                {this.state.currentKey === "issues" ? <IssueManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
             </div>
