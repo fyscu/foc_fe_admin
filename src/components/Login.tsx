@@ -1,9 +1,9 @@
 ﻿import { useEffect, useRef } from "react";
 import { LoginForm, ProFormCheckbox, ProFormInstance, ProFormText } from "@ant-design/pro-components";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import config from "../config";
 import { message } from "antd";
 import localforage from "localforage";
+import meta from "../meta";
 
 type Props = {
     succeedCallBack :(accessToken :string)=>void;
@@ -38,7 +38,7 @@ export default function Login(props :Props){
         })();
     });
     const [messageAPI, contextHolder] = message.useMessage(), finish = async (values :formData)=>{
-        const response :LoginResponse = await (await fetch(`${config.api}/v1/admin/login`, {
+        const response :LoginResponse = await (await fetch(`${meta.apiDomain}/v1/admin/login`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(values)

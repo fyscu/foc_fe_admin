@@ -2,13 +2,14 @@
 import mainStyles from "../css/main.module.css";
 import { Button, ConfigProvider, Menu, Modal } from "antd";
 import { ItemType, MenuItemType } from "antd/es/menu/interface";
-import { BarChartOutlined, FlagOutlined, IdcardOutlined, UserOutlined } from "@ant-design/icons";
+import { BarChartOutlined, FlagOutlined, IdcardOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import meta from "../meta";
 import { MenuInfo } from "rc-menu/lib/interface";
 import UserManage from "./UserManage/UserManage";
 import OrderManage from "./OrderManage/OrderManage";
 import EventManage from "./EventManage/EventManage";
 import Statistics from "./Statistics/Statistics";
+import Settings from "./Settings/Settings";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
@@ -41,6 +42,11 @@ export default class Panel extends Cp<Props, State>{
             key: "stats",
             label: "统计数据",
             icon: <BarChartOutlined />
+        },
+        {
+            key: "settings",
+            label: "设置",
+            icon: <SettingOutlined />
         }
     ];
     constructor(props :Props){
@@ -73,9 +79,9 @@ export default class Panel extends Cp<Props, State>{
                 />
                 <div style={{
                     position: "absolute",
-                    left: "1rem",
+                    left: ".9rem",
                     bottom: "1rem",
-                    fontSize: ".9rem",
+                    fontSize: 15,
                     display: "flex",
                     alignItems: "center",
                     gap: "1rem"
@@ -84,26 +90,19 @@ export default class Panel extends Cp<Props, State>{
                     <div>
                         <ConfigProvider theme={{components: {Button: {paddingInline: 0, textHoverBg: "transparent", colorBgTextActive: "transparent"}}}}><Button type="text" onClick={()=>this.setState({aboutModalOpened: true})}>关于</Button></ConfigProvider>
                         <Modal
-                            title="关于"
                             open={this.state.aboutModalOpened}
                             footer={null}
                             onCancel={()=>this.setState({aboutModalOpened: false})}
-                            width={"20rem"}
+                            width={"50dvw"}
                             closable={false}
-                        >
-                            <p>版本：{meta.version}</p>
-                            <p>日期：{meta.date}</p>
-                            <p>开发版：{meta.dev ? "true" : "false"}</p>
-                            <p>开发者：<a href="//i.ljm.im" target="_blank">LJM12914</a></p>
-                            
-                            <p><a href="//fyscu.com" target="_blank">四川大学飞扬俱乐部</a><a href="//lab.fyscu.com" target="_blank">研发部</a> 出品</p>
-                        </Modal>
+                        >{meta.about}</Modal>
                     </div>
                 </div>
                 {this.state.currentKey === "users" ? <UserManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "settings" ? <Settings /> : null}
             </div>
         );
     }

@@ -1,10 +1,14 @@
 ﻿import React, { Component as Cp } from "react";
 import mainStyles from "../css/main.module.css";
 import localforage from "localforage";
-import config from "../../config";
-import { EditableProTable, ProColumns } from "@ant-design/pro-components";
 import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
-import { Tooltip } from "antd";
+import { Pagination, Table, Tooltip } from "antd";
+import meta from "../../meta";
+import { ColumnsType } from "antd/es/table";
+import { anyObject } from "../../main";
+import Paragraph from "antd/es/typography/Paragraph";
+import Text from "antd/es/typography/Text";
+import { getPx } from "../../utils";
 
 interface URLLike extends String{
     i_am_a_convertable_type_to_URL :never;
@@ -14,15 +18,19 @@ type Props = {
     ATFailCallBack :(message?: string)=>void;
 };
 
+const FilterableFields = ["campus", "role", "available", "uid", "openid", "phone", "email", "immed"];
+
 type State = {
     loading :boolean;
     datas :UserData[];
+    currentPage :number;
+    dataSize :number;
+    filters :Record<typeof FilterableFields[number], string[]>;
 };
 
-type Params = {
-    pageSize?: number;
-    current?: number;
-    keyword?: string;
+type GetnumResponse = {
+    success :boolean;
+    total_users :number;
 };
 
 type GetUserResponse = {
@@ -50,21 +58,20 @@ type UserData = {
 
 /**@once */
 export default class UserManage extends Cp<Props, State>{
-    columns :ProColumns<UserData, "text">[] = [
+    columns :ColumnsType<UserData> = [
         {
             dataIndex: "id",
             title: "ID",
             align: "left",
-            width: 75
+            width: 80
         },
         {
             dataIndex: "openid",
             title: "openid",
             align: "left",
-            copyable: true,
             ellipsis: true,
             width: 200,
-            render: openid=>openid ?? "未迁移"
+            render: openid=>openid ? <div className="openid" style={{display: "flex", width: "100%", flexFlow: "row nowrap", gap: ".2rem"}}><Text copyable={{text: openid, tooltips: false}} /><div style={{maxWidth: "calc(100% - 15px - .2rem)"}}><div title={openid} style={{overflow: "hidden", textOverflow: "ellipsis"}}>{openid}</div></div></div> : "未迁移"
         },
         {
             dataIndex: "nickname",
@@ -89,10 +96,10 @@ export default class UserManage extends Cp<Props, State>{
         {
             dataIndex: "phone",
             title: "手机号",
+            //copyable: true
             align: "left",
-            width: 150,
-            render: (phone, record)=><div style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>{record.status === "verified" ? <Tooltip title="已验证"><CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} /></Tooltip> : <Tooltip title="未验证"><CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} /></Tooltip>}{phone}</div>,
-            copyable: true
+            width: 170,
+            render: (phone, entry)=><div className="phone" style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>{entry.status === "verified" ? <Tooltip title="已验证"><CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} /></Tooltip> : <Tooltip title="未验证"><CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} /></Tooltip>}<Paragraph copyable={{tooltips: false}}>{phone}</Paragraph></div>,
         },
         {
             dataIndex: "email",
@@ -103,8 +110,8 @@ export default class UserManage extends Cp<Props, State>{
             dataIndex: "token_expiry",
             title: "活跃时间",
             align: "left",
-            render: token_expiry=>{
-                if(typeof token_expiry === "string"){
+            render: (token_expiry, entity)=>{
+                if(token_expiry !== "0000-00-00 00:00:00"){
                     const date = new Date(token_expiry);
                     date.setHours(date.getHours() - 1);
                     return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()} ${date.getHours()}:${(date.getMinutes() + "").padStart(2, "0")}:${(date.getSeconds() + "").padStart(2, "0")}`;
@@ -118,51 +125,74 @@ export default class UserManage extends Cp<Props, State>{
         super(props);
         this.state = {
             loading: true,
-            datas: []
-        }
+            datas: [],
+            currentPage: 0,
+            dataSize: 0,
+            filters: {}
+        };
     }
     componentDidMount(){
-        this.getData();
+        this.updateTable();
     }
-    getData = async (params :{
-        pageSize?: number;
-        current?: number;
-        keyword?: string;
-    }, sort: Record<string, "descend" | "ascend" | null>, filter: Record<string, (string | number)[] | null>) :Promise<{
-        data: UserData[] | undefined;
-        success?: boolean;
-        total?: number;
-    }>=>{
+    updateTable = ()=>{
+        this.getDataSize(this.state.filters);
+        this.getData(this.state.filters, this.state.currentPage);
+    }
+    /**不需要基础 headers，已经默认填好了*/
+    fetchData = async <T extends {}>(url :string | URL, method :"GET" | "POST", headers? :anyObject, body? :anyObject) :Promise<T | null>=>{
         const AT = await localforage.getItem("access_token");
-        if(AT === null) this.props.ATFailCallBack("未登录，请先登录");
-        const url = new URL(`${config.api}/v1/status/getUser`);
-        url.searchParams.append("limit", "1000");
-        //url.searchParams.append("available", "0");
-        url.searchParams.append("campus", "望江");
-        //url.searchParams.append("role", "technician");
-        //url.searchParams.append("page", "1");
-        //console.log(url);
-        const response = fetch(url, {
-            method: "GET",
+        if(AT === null){
+            this.props.ATFailCallBack("未登录，请先登录");
+            return null;
+        }
+        const response = method === "GET" ? fetch(url, {
             headers: {
+                ...headers,
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${AT}`
-            }
+            }, method: "GET"
+        }) : fetch(url, {
+            headers: {
+                ...headers,
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${AT}`
+            }, method: "POST", body: JSON.stringify(body)
         });
         response.catch((reason :any)=>{
             this.props.ATFailCallBack("出现未知错误，请检查控制台");
             console.log(reason);
         });
-        const data :GetUserResponse = await (await response).json();
-        if(data.error) this.props.ATFailCallBack();
+        return await (await response).json();
+    }
+    getDataSize = async (filters :Record<string, (string | number)[] | null>)=>{
+        const url = new URL(`${meta.apiDomain}/v1/admin/getnum/user`);
+        url.searchParams.append("uid", "103650");
+        const data = (await this.fetchData<GetnumResponse>(url, "GET"))!;
         console.log(data);
-        return {
-            data: data.data,
-            success: data.success,
-            total: data.data.length
-        };
+        if(data.success) this.setState({dataSize: data.total_users});
+        //todo:看文档，这里是什么情况？
+        else this.setState({dataSize: 0});
+    }
+    getData = async (filters :Record<string, (string | number)[] | null>, page :number)=>{
+        const url = new URL(`${meta.apiDomain}/v1/status/getUser`);
+        url.searchParams.append("uid", "103650");
+        url.searchParams.append("page", page ? page + "" : "1");
+        const data = (await this.fetchData<GetUserResponse>(url, "GET"))!;
+        if(data.error){
+            this.props.ATFailCallBack();
+            this.setState({
+                datas: [],
+                loading: false
+            });
+        }
+        console.log(data);
+        this.setState({
+            datas: data.data,
+            loading: false
+        });
     }
     render() :React.ReactNode{
+        console.log(getPx("10rem"));
         return(
             <div id="users" style={{
                 display: "flex",
@@ -174,68 +204,24 @@ export default class UserManage extends Cp<Props, State>{
                 }}>
                     操作区
                 </div>
-                <EditableProTable<UserData>
-                    style={{
-                        width: "100%",
-                        height: "100dvh",
-                        overflowY: "auto"
-                    }}
-                    pagination={{
-                        position: ["bottomCenter"],
-                        pageSize: 20,
-                        showQuickJumper: false,
-                        showSizeChanger: false
-                    }}
-                    scroll={{
-                        scrollToFirstRowOnChange: true
-                    }}
-                    request={this.getData}
-                    rowKey="id"
-                    maxLength={5}
-                    recordCreatorProps={false}
+                <Table<UserData>
                     columns={this.columns}
+                    rowKey={record=>record.id}
+                    loading={this.state.loading}
+                    dataSource={this.state.datas}
+                    pagination={false}
+                    scroll={{y: window.innerHeight - getPx("13rem") - 43}}
                 />
+                <div style={{
+                    display: "flex",
+                    flexFlow: "column nowrap",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "3rem"
+                }}>
+                    <Pagination defaultCurrent={1} current={this.state.currentPage} total={this.state.dataSize} />
+                </div>
             </div>
         );
-        //return(<>
-        //    <Table<UserData>
-        //        pagination={{
-        //            position: ["bottomRight"],
-        //            pageSize: 20
-        //        }}
-        //        rowKey={record=>record.id}
-        //        style={{
-        //            width: "100%",
-        //            overflowY: "auto"
-        //        }}
-        //        dataSource={this.state.datas}
-        //    >
-        //        <Column title="ID" dataIndex="id" align="center" key="id" />
-        //        <Column title="昵称" dataIndex="nickname" ellipsis={{showTitle: true}} align="center" render={(nickname, record)=><div style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".4rem"}}><img width={33} height={33} src={record.avatar === "0.png" ? "0.png" : record.avatar}></img>{nickname}</div>} />
-        //        <Column title="注册时间" dataIndex="regtime" ellipsis={{showTitle: false}} align="center" render={regtime=><Tooltip placement="topLeft" title={regtime}>{regtime}</Tooltip>} />
-        //        <Column title="角色" dataIndex="role" align="center" render={role=>role === "admin" ? "管理员" : role === "technician" ? "技术员" : "用户"} />
-        //        <Column title="校区" dataIndex="campus" align="center" />
-        //        <Column title="邮箱地址" dataIndex="email" align="center" />
-        //        <Column title="电话号码" dataIndex="phone" align="center" />
-        //        <Column title="账号状态" dataIndex="status" align="center" render={status=>status === "pending" ? "未完善信息" : "正常"} />
-        //    </Table>
-        //    <ProTable>
-        //        
-        //    </ProTable>
-        //</>);
     }
 }
-
-//type UserData = {
-//    id :number;
-//    //openid :string;
-//    token_expiry :Datelike;
-//    regtime :Datelike;
-//    nickname :string;
-//    avatar :URLLike;
-//    campus :"江安" | "望江" | "华西";
-//    role :"admin" | "technician" | "user";
-//    email :string;
-//    phone :string;
-//    status :"verified" | "pending";
-//};

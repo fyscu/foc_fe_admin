@@ -8,6 +8,7 @@ import "./css/main.antdFix.css";
 import App from "./components/App";
 import meta from "./meta";
 import localforage from "localforage";
+import { mountGetPx } from "./utils";
 
 if("serviceWorker" in window.navigator) window.navigator.serviceWorker.register("serviceworker.js");
 else if(await localforage.getItem("alerted-no-offline") === null){
@@ -16,6 +17,7 @@ else if(await localforage.getItem("alerted-no-offline") === null){
 }
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
+mountGetPx();
 export async function load(){
     root.render(<React.StrictMode><App key={Date.now()} /></React.StrictMode>);
     return "重新加载完毕" as const;

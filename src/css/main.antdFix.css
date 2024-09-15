@@ -8,10 +8,23 @@
     padding-left: 0;
     padding-right: 0;
 }
-.ant-table{
-    height: calc(100dvh - 40px - 10rem);
-    overflow-y: auto;
-}
 .ant-pro-card{
     height: 100%;
+}
+.ant-modal{
+    padding-bottom: 5rem;
+}
+.ant-modal-content.ant-modal-content{
+    padding: .8rem 1.5rem 1.5rem;
+}
+.openid .ant-typography{
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+}
+.phone .ant-typography{
+    margin: 0;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
 }

@@ -3,11 +3,11 @@ import mainStyles from "../css/main.module.css";
 import Login, { LoginResponse } from "./Login";
 import { ConfigProvider, message, Spin, theme } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
-import config from "../config";
 import Panel from "./Panel";
 import zhCN from 'antd/locale/zh_CN';
 import localforage from "localforage";
 import { load } from "../index";
+import meta from "../meta";
 
 /**@once */
 export default function App(){
@@ -27,7 +27,7 @@ export default function App(){
                 username = await localforage.getItem<string>("username"),
                 password = await localforage.getItem<string>("password");
             if(username && password){
-                const response :LoginResponse = await (await fetch(`${config.api}/v1/admin/login`, {
+                const response :LoginResponse = await (await fetch(`${meta.apiDomain}/v1/admin/login`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({username, password})
@@ -53,7 +53,7 @@ export default function App(){
         (async ()=>{
             const AT = await localforage.getItem("access_token");
             if(AT !== null){
-                const result = await (await fetch(`${config.api}/v1/admin/getopenids`, {
+                const result = await (await fetch(`${meta.apiDomain}/v1/admin/getopenids`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -76,6 +76,9 @@ export default function App(){
     return(
         <ConfigProvider locale={zhCN} theme={{
             algorithm: theme.darkAlgorithm,
+            token: {
+                fontSize: 15
+            },
             components: {
                 Message: {
                     contentBg: "var(--c-grey--3)"
@@ -88,7 +91,8 @@ export default function App(){
                     fontSize: 15
                 },
                 Table: {
-                    cellPaddingBlock: 6
+                    cellPaddingBlock: 10,
+                    cellPaddingInline: 10
                 }
             }
         }}>
