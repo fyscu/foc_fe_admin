@@ -1,7 +1,7 @@
 ﻿import { useEffect, useRef } from "react";
 import { LoginForm, ProFormCheckbox, ProFormInstance, ProFormText } from "@ant-design/pro-components";
 import { LockOutlined, UserOutlined } from "@ant-design/icons";
-import { message } from "antd";
+import { ConfigProvider, message } from "antd";
 import localforage from "localforage";
 import meta from "../meta";
 
@@ -63,17 +63,19 @@ export default function Login(props :Props){
     return(
         <div>
             {contextHolder}
-            <LoginForm logo="" formRef={ref} onFinish={finish} title="云上飞扬" subTitle="飞扬俱乐部线上管理系统后台">
-                <ProFormText rules={[{required: true, message: "请输入用户名！"}]} name="username" placeholder="用户名" fieldProps={{
-                    size: "large",
-                    prefix: <UserOutlined />
-                }} />
-                <ProFormText.Password rules={[{required: true, message: "请输入密码！"}]} name="password" placeholder="密码" fieldProps={{
-                    size: "large",
-                    prefix: <LockOutlined />
-                }} />
-                <ProFormCheckbox name="remember" valuePropName="checked">以后自动登录</ProFormCheckbox>
-            </LoginForm>
+            <ConfigProvider theme={{token: {fontSize: 14}}}>
+                <LoginForm formRef={ref} onFinish={finish} title="云上飞扬" subTitle="飞扬俱乐部线上管理系统后台">
+                    <ProFormText rules={[{required: true, message: "请输入用户名！"}]} name="username" placeholder="用户名" fieldProps={{
+                        size: "large",
+                        prefix: <UserOutlined />
+                    }} />
+                    <ProFormText.Password rules={[{required: true, message: "请输入密码！"}]} name="password" placeholder="密码" fieldProps={{
+                        size: "large",
+                        prefix: <LockOutlined />
+                    }} />
+                    <ProFormCheckbox name="remember" valuePropName="checked">以后自动登录</ProFormCheckbox>
+                </LoginForm>
+            </ConfigProvider>
         </div>
     );
 }

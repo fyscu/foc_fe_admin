@@ -12,7 +12,7 @@ import { mountGetPx } from "./utils";
 
 if("serviceWorker" in window.navigator) window.navigator.serviceWorker.register("serviceworker.js");
 else if(await localforage.getItem("alerted-no-offline") === null){
-    localforage.setItem("alerted-no-offline", "true");
+    localforage.setItem("alerted-no-offline", true);
     alert("您的浏览器不支持离线使用本应用。");
 }
 

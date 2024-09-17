@@ -1,7 +1,7 @@
 ﻿const
-    version = "0.8.0",
+    version = "0.9.0",
     dev = true,
-    date = "2024.9.16",
+    date = "2024.9.18",
     api = "https://focapi.feiyang.ac.cn",
     about = (()=>(<div style={{fontSize: 16}}>
         <div style={{display: "flex", justifyContent: "center"}}><img src="https://about.feiyang.ac.cn/assets/logo.png" height={200} alt="logo" /></div>
@@ -14,18 +14,20 @@
             <colgroup style={{width: "8rem", padding: "0"}}></colgroup>
             <colgroup style={{width: "8rem", padding: "0"}}></colgroup>
             <colgroup style={{width: "8rem", padding: "0"}}></colgroup>
-            <tr>
-                <td><img src="https://lab.feiyang.ac.cn/images/huzongyao.jpg" alt="胡宗尧的头像" height={80} /></td>
-                <td>胡宗尧</td><td>小程序开发</td>
-            </tr>
-            <tr>
-                <td><img src="https://cdn.wjlo.cc/br/picture/wjlavatar.png" alt="王嘉麟的头像" height={80} /></td>
-                <td><a href="//wjlo.cc" target="_blank">王嘉麟</a></td><td>后端开发</td>
-            </tr>
-            <tr>
-                <td><img src="https://www.ljm.im/avatar/512.png" alt="林峻茗的头像" height={80} /></td>
-                <td><a href="//i.ljm.im" target="_blank">林峻茗</a></td><td>管理后台开发</td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td><img src="https://lab.feiyang.ac.cn/images/huzongyao.jpg" alt="胡宗尧的头像" height={80} /></td>
+                    <td>胡宗尧</td><td>小程序开发</td>
+                </tr>
+                <tr>
+                    <td><img src="https://cdn.wjlo.cc/br/picture/wjlavatar.png" alt="王嘉麟的头像" height={80} /></td>
+                    <td><a href="//wjlo.cc" target="_blank">王嘉麟</a></td><td>后端开发</td>
+                </tr>
+                <tr>
+                    <td><img src="https://www.ljm.im/avatar/512.png" alt="林峻茗的头像" height={80} /></td>
+                    <td><a href="//i.ljm.im" target="_blank">林峻茗</a></td><td>管理后台开发</td>
+                </tr>
+            </tbody>
         </table>
         <p>版本：{version}</p>
         <p>日期：{date}</p>

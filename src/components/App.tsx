@@ -6,7 +6,6 @@ import { LoadingOutlined } from "@ant-design/icons";
 import Panel from "./Panel";
 import zhCN from 'antd/locale/zh_CN';
 import localforage from "localforage";
-import { load } from "../index";
 import meta from "../meta";
 
 /**@once */
@@ -74,7 +73,7 @@ export default function App(){
         })();
     });
     return(
-        <ConfigProvider locale={zhCN} theme={{
+        <ConfigProvider locale={zhCN} wave={{disabled: true}} theme={{
             algorithm: theme.darkAlgorithm,
             token: {
                 fontSize: 15
