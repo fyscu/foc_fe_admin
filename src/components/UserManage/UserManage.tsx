@@ -19,7 +19,7 @@ type Props = {
     ATFailCallBack :(message?: string)=>void;
 };
 
-const FilterableFields = ["campus", "role", "available", "uid", "openid", "phone", "email", "immed"];
+const FilterableFields = ["campus", "role", "available", "uid", "openid", "phone", "email", "immed"] as const;
 
 type State = {
     loading :boolean;
@@ -27,7 +27,7 @@ type State = {
     currentPage :number;
     dataSize :number;
     pageSize :number;
-    filters :Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>;
+    filters :Partial<Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>>;
 };
 
 type GetnumResponse = {
@@ -190,8 +190,9 @@ export default class UserManage extends Cp<Props, State>{
         const url = new URL(`${meta.apiDomain}/v1/admin/getnum/user`);
         console.log(this.state.filters);
         if(Object.keys(this.state.filters).length !== 0) for(let i in this.state.filters){
-            if(this.state.filters[i] !== null && this.state.filters[i].length === 1){
-                url.searchParams.append(i, this.state.filters[i][0] as string);
+            const I = i as typeof FilterableFields[number];
+            if(this.state.filters[I] !== null && this.state.filters[I]!.length === 1){
+                url.searchParams.append(i, this.state.filters[I]![0] as string);
             }
         }
         const data = (await this.fetchData<GetnumResponse>(url, "GET"))!;
@@ -205,8 +206,9 @@ export default class UserManage extends Cp<Props, State>{
         url.searchParams.append("page", this.state.currentPage + "");
         url.searchParams.append("limit", this.state.pageSize + "");
         if(Object.keys(this.state.filters).length !== 0) for(let i in this.state.filters){
-            if(this.state.filters[i] !== null && this.state.filters[i].length === 1){
-                url.searchParams.append(i, this.state.filters[i][0] as string);
+            const I = i as typeof FilterableFields[number];
+            if(this.state.filters[I] !== null && this.state.filters[I]!.length === 1){
+                url.searchParams.append(i, this.state.filters[I]![0] as string);
             }
         }
         const data = (await this.fetchData<GetUserResponse>(url, "GET"))!;

@@ -2,7 +2,7 @@
     version = "0.9.0",
     dev = true,
     date = "2024.9.18",
-    api = "https://focapi.feiyang.ac.cn",
+    api = "https://fyapi2.wjlo.cc",
     about = (()=>(<div style={{fontSize: 16}}>
         <div style={{display: "flex", justifyContent: "center"}}><img src="https://about.feiyang.ac.cn/assets/logo.png" height={200} alt="logo" /></div>
         <h3 style={{marginBottom: "1rem"}}>关于云上飞扬</h3>

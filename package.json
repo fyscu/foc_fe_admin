@@ -17,6 +17,9 @@
     "react-scripts": "^5.0.1",
     "typescript": "^4.9.5"
   },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": ""
+  },
   "scripts": {
     "start": "set PORT=21999 && react-scripts start",
     "build": "react-scripts build"

@@ -2,7 +2,7 @@
 import mainStyles from "../css/main.module.css";
 import { Button, ConfigProvider, Menu, Modal } from "antd";
 import { ItemType, MenuItemType } from "antd/es/menu/interface";
-import { BarChartOutlined, FlagOutlined, IdcardOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
+import { BarChartOutlined, FlagOutlined, GiftOutlined, IdcardOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
 import meta from "../meta";
 import { MenuInfo } from "rc-menu/lib/interface";
 import UserManage from "./UserManage/UserManage";
@@ -10,6 +10,7 @@ import OrderManage from "./OrderManage/OrderManage";
 import EventManage from "./EventManage/EventManage";
 import Statistics from "./Statistics/Statistics";
 import Settings from "./Settings/Settings";
+import Lottery from "./Lottery/Lottery";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
@@ -42,6 +43,11 @@ export default class Panel extends Cp<Props, State>{
             key: "stats",
             label: "统计数据",
             icon: <BarChartOutlined />
+        },
+        {
+            key: "lottery",
+            label: "抽奖管理",
+            icon: <GiftOutlined />
         },
         {
             key: "settings",
@@ -102,6 +108,7 @@ export default class Panel extends Cp<Props, State>{
                 {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "lottery" ? <Lottery ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "settings" ? <Settings /> : null}
             </div>
         );
