@@ -3,7 +3,7 @@ import mainStyles from "../css/main.module.css";
 import localforage from "localforage";
 
 type Props = {
-    ATFailCallBack :()=>void;
+    ATFailCallBack :(message?: string)=>void;
 };
 
 type State = {

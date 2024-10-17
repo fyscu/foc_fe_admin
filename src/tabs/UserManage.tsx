@@ -1,19 +1,15 @@
 ﻿import React, { Component as Cp } from "react";
-import mainStyles from "../css/main.module.css";
 import localforage from "localforage";
 import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
 import { Pagination, Table, Tooltip } from "antd";
-import meta from "../../meta";
+import meta from "../meta";
 import { ColumnsType } from "antd/es/table";
-import { anyObject } from "../../main";
+import { anyObject } from "../main";
 import Paragraph from "antd/es/typography/Paragraph";
 import Text from "antd/es/typography/Text";
-import { getPx, iniLocalforage } from "../../utils";
+import { getPx, iniLocalforage } from "../utils/misc";
 import { SorterResult, TablePaginationConfig } from "antd/es/table/interface";
-
-interface URLLike extends String{
-    i_am_a_convertable_type_to_URL :never;
-}
+import { GetUserNumResponse, GetUserResponse, UserData } from "../schema/user";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
@@ -30,41 +26,13 @@ type State = {
     filters :Partial<Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>>;
 };
 
-type GetnumResponse = {
-    success :boolean;
-    total_users :number;
-};
-
-type GetUserResponse = {
-    success :boolean;
-    request_type :"all" | "";
-    data :UserData[];
-    error? :string;
-};
-
-type UserData = {
-    id :number;
-    openid :string;
-    token_expiry :string;
-    regtime :string;
-    nickname :string;
-    avatar :URLLike;
-    campus :"江安" | "望江" | "华西";
-    role :"admin" | "technician" | "user";
-    email :string;
-    phone :string;
-    status :"verified" | "pending";
-    immed :"0" | "1";
-    available :"0" | "1";
-};
-
 /**@once */
 export default class UserManage extends Cp<Props, State>{
-    columns :ColumnsType<UserData> = [
+    static columns :ColumnsType<UserData> = [
         {
             dataIndex: "id",
             key: "id",
-            title: "ID",
+            title: "用户ID",
             align: "left",
             width: 80
         },
@@ -76,11 +44,11 @@ export default class UserManage extends Cp<Props, State>{
             filters: [
                 {
                     text: "存在 openid",
-                    value: "true"
+                    value: true
                 },
                 {
                     text: "不存在 openid",
-                    value: "false"
+                    value: false
                 }
             ],
             ellipsis: true,
@@ -100,6 +68,20 @@ export default class UserManage extends Cp<Props, State>{
             dataIndex: "campus",
             key: "campus",
             title: "校区",
+            filters: [
+                {
+                    text: "江安",
+                    value: "江安"
+                },
+                {
+                    text: "望江",
+                    value: "望江"
+                },
+                {
+                    text: "华西",
+                    value: "华西"
+                }
+            ],
             align: "left",
             render: (campus, entry)=>entry.immed === "1" ? campus : "未迁移",
             width: 70
@@ -135,7 +117,8 @@ export default class UserManage extends Cp<Props, State>{
             dataIndex: "email",
             key: "email",
             title: "邮件地址",
-            align: "left"
+            align: "left",
+            ellipsis: true
         },
         {
             dataIndex: "token_expiry",
@@ -181,43 +164,50 @@ export default class UserManage extends Cp<Props, State>{
             this.getDataSize();
             const pageSize = await iniLocalforage("users_pageSize", 20);
             this.setState({pageSize}, ()=>{
-                this.getData();
-                this.setState({loading: false});
+                this.getData().then(()=>{
+                    this.setState({loading: false});
+                });
             });
         });
     }
     getDataSize = async ()=>{
         const url = new URL(`${meta.apiDomain}/v1/admin/getnum/user`);
-        console.log(this.state.filters);
-        if(Object.keys(this.state.filters).length !== 0) for(let i in this.state.filters){
-            const I = i as typeof FilterableFields[number];
-            if(this.state.filters[I] !== null && this.state.filters[I]!.length === 1){
-                url.searchParams.append(i, this.state.filters[I]![0] as string);
-            }
+        this.appendFilters(url);
+        const data = await this.fetchData<GetUserNumResponse>(url, "GET");
+        if(data){
+            console.log(data.total_users);
+            if(data.success) this.setState({dataSize: data.total_users});
+            //note:这个地方不知道怎么搞，可能出问题
+            else this.setState({dataSize: 0});
         }
-        const data = (await this.fetchData<GetnumResponse>(url, "GET"))!;
-        //console.log(data);
-        if(data.success) this.setState({dataSize: data.total_users});
-        //note:这个地方不知道怎么搞，可能出问题
-        else this.setState({dataSize: 0});
+        else this.props.ATFailCallBack("获取数量数据失败");
     }
     getData = async ()=>{
         const url = new URL(`${meta.apiDomain}/v1/status/getUser`);
         url.searchParams.append("page", this.state.currentPage + "");
         url.searchParams.append("limit", this.state.pageSize + "");
-        if(Object.keys(this.state.filters).length !== 0) for(let i in this.state.filters){
-            const I = i as typeof FilterableFields[number];
-            if(this.state.filters[I] !== null && this.state.filters[I]!.length === 1){
-                url.searchParams.append(i, this.state.filters[I]![0] as string);
-            }
+        if(this.state.filters.openid && this.state.filters.openid.length !== 2){
+            if(this.state.filters.openid.includes(true)) url.searchParams.append("immed", "1");
+            else url.searchParams.append("immed", "0");
         }
+        this.appendFilters(url);
         const data = (await this.fetchData<GetUserResponse>(url, "GET"))!;
-        if(data.error){
-            this.props.ATFailCallBack();
+        if(!data.success){
+            this.props.ATFailCallBack("获取数据失败");
             this.setState({datas: []});
         }
         //console.log(data);
-        this.setState({datas: data.data});
+        this.setState({datas: data.data as UserData[]});
+    }
+    private appendFilters(url :URL) :URL{
+        if(Object.keys(this.state.filters).length !== 0) for(let i in this.state.filters){
+            const I = i as typeof FilterableFields[number];
+            if(
+                (I !== "openid")
+             && (this.state.filters[I] !== null && this.state.filters[I]!.length === 1)
+            ) url.searchParams.append(i, this.state.filters[I]![0] as string);
+        }
+        return url;
     }
     /**不需要基础 headers，已经默认填好了*/
     fetchData = async <T extends {}>(url :string | URL, method :"GET" | "POST", headers? :anyObject, body? :anyObject) :Promise<T | null>=>{
@@ -239,6 +229,7 @@ export default class UserManage extends Cp<Props, State>{
                 "Authorization": `Bearer ${AT}`
             }, method: "POST", body: JSON.stringify(body)
         });
+        //网络出错或者登录过期，逻辑错误给调用的方法来处理
         response.catch((reason :any)=>{
             this.props.ATFailCallBack("出现未知错误，请检查控制台");
             console.log(reason);
@@ -258,7 +249,7 @@ export default class UserManage extends Cp<Props, State>{
                     操作区
                 </div>
                 <Table<UserData>
-                    columns={this.columns}
+                    columns={UserManage.columns}
                     rowKey={record=>record.id}
                     loading={this.state.loading}
                     dataSource={this.state.datas}

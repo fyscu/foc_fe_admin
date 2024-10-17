@@ -3,7 +3,7 @@ import mainStyles from "../css/main.module.css";
 import localforage from "localforage";
 
 type Props = {
-    ATFailCallBack :()=>void;
+    ATFailCallBack :(message?: string)=>void;
 };
 
 type State = {
@@ -11,7 +11,7 @@ type State = {
 };
 
 /**@once */
-export default class Lottery extends Cp<Props, State>{
+export default class Statistics extends Cp<Props, State>{
     constructor(props :Props){
         super(props);
     }
@@ -20,7 +20,7 @@ export default class Lottery extends Cp<Props, State>{
     }
     render() :React.ReactNode{
         return(
-            <div>抽奖管理</div>
+            <div>这个得等一会儿才会开发 :)</div>
         );
     }
 }

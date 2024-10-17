@@ -2,15 +2,14 @@
 import mainStyles from "../css/main.module.css";
 import { Button, ConfigProvider, Menu, Modal } from "antd";
 import { ItemType, MenuItemType } from "antd/es/menu/interface";
-import { BarChartOutlined, FlagOutlined, GiftOutlined, IdcardOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons";
+import { BarChartOutlined, FlagOutlined, IdcardOutlined, SettingOutlined, SnippetsOutlined } from "@ant-design/icons";
 import meta from "../meta";
 import { MenuInfo } from "rc-menu/lib/interface";
-import UserManage from "./UserManage/UserManage";
-import OrderManage from "./OrderManage/OrderManage";
-import EventManage from "./EventManage/EventManage";
-import Statistics from "./Statistics/Statistics";
-import Settings from "./Settings/Settings";
-import Lottery from "./Lottery/Lottery";
+import UserManage from "../tabs/UserManage";
+import OrderManage from "../tabs/OrderManage";
+import EventManage from "../tabs/EventManage";
+import Statistics from "../tabs/Statistics";
+import Settings from "../tabs/Settings";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
@@ -32,7 +31,7 @@ export default class Panel extends Cp<Props, State>{
         {
             key: "issues",
             label: "工单管理",
-            icon: <UserOutlined />
+            icon: <SnippetsOutlined />
         },
         {
             key: "events",
@@ -43,11 +42,6 @@ export default class Panel extends Cp<Props, State>{
             key: "stats",
             label: "统计数据",
             icon: <BarChartOutlined />
-        },
-        {
-            key: "lottery",
-            label: "抽奖管理",
-            icon: <GiftOutlined />
         },
         {
             key: "settings",
@@ -99,7 +93,7 @@ export default class Panel extends Cp<Props, State>{
                             open={this.state.aboutModalOpened}
                             footer={null}
                             onCancel={()=>this.setState({aboutModalOpened: false})}
-                            width={"50dvw"}
+                            width={"60dvw"}
                             closable={false}
                         >{meta.about}</Modal>
                     </div>
@@ -108,8 +102,7 @@ export default class Panel extends Cp<Props, State>{
                 {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
-                {this.state.currentKey === "lottery" ? <Lottery ATFailCallBack={this.props.ATFailCallBack} /> : null}
-                {this.state.currentKey === "settings" ? <Settings /> : null}
+                {this.state.currentKey === "settings" ? <Settings ATFailCallBack={this.props.ATFailCallBack} /> : null}
             </div>
         );
     }
