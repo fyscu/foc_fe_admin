@@ -26,4 +26,5 @@ export type EventData = {
     winnum :string | null;
     registered :boolean;
     isLucky :"0" | "1";
+    max_luckynum :string;
 };

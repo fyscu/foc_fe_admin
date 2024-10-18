@@ -14,6 +14,7 @@ import { FullscreenExitOutlined, FullscreenOutlined, GiftOutlined, RollbackOutli
 import { randomInt } from "../../utils/misc";
 import { GetUserResponse, UserData } from "../../schema/user";
 import confetti from "canvas-confetti";
+import defaultAvatar from "../../schema/defaultAvatar";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
@@ -93,8 +94,8 @@ export default class Lucky extends Cp<Props, State>{
             title: "抽取幸运观众",
             key: "roll",
             render: (value :undefined, record :EventData)=><Button type="link" autoInsertSpace={false} onClick={async ()=>{
-                
-                this.setState(state=>({...state, roll: {... state.roll, inRollPage: true, rollingId: record.id}}));
+                const data = await this.fetchData<GetEventResponse>(`${meta.apiDomain}/v1/status/getEvent?id=${record.id}`, "GET");
+                this.setState(state=>({...state, roll: {... state.roll, inRollPage: true, rollingId: record.id, max: parseInt(data!.activities[0].max_luckynum)}}));
             }}>抽奖</Button>,
             width: 120
         }
@@ -124,15 +125,10 @@ export default class Lucky extends Cp<Props, State>{
         this.updateTable();
     }
     updateTable = async ()=>{
-        this.setState({loading: true}, ()=>{
-            this.getData().then(()=>{
-                this.setState({loading: false});
-            });
-        });
+        this.setState({loading: true}, ()=>this.getData().then(()=>this.setState({loading: false})));
     }
     getData = async ()=>{
-        const url = new URL(`${meta.apiDomain}/v1/status/getEvent?isLucky=1`);
-        const data = (await this.fetchData<GetEventResponse>(url, "GET"));
+        const data = await this.fetchData<GetEventResponse>(`${meta.apiDomain}/v1/status/getEvent?isLucky=1`, "GET");
         if(!data || !data.success) this.setState({datas: []});
         else this.setState({datas: data.activities as EventData[]});
     }
@@ -175,10 +171,8 @@ export default class Lucky extends Cp<Props, State>{
                 ...this.state.roll,
                 isRolling: true,
                 rollingEnded: false,
-                result: [],
-                max: 99
+                result: []
             }
-            
         }, async ()=>{
             const
                 delay = randomInt(6, 10) * 1000,
@@ -199,7 +193,7 @@ export default class Lucky extends Cp<Props, State>{
                                     result: [...state.roll.result, {
                                         id: userData.id + "",
                                         name: userData.nickname,
-                                        avatar: userData.avatar,
+                                        avatar: toUrl(userData.avatar) === "https://img1.doubanio.com/view/group_topic/l/public/p560183288.webp" ? defaultAvatar : userData.avatar,
                                         number: data.winning_nums[i]
                                     }]
                                 }
@@ -262,7 +256,7 @@ export default class Lucky extends Cp<Props, State>{
                 token: {
                     colorBgContainer: "#f0fff0"
                 }
-            }}><div id="lucky" className={styles.main} style={{
+            }}><section></section><div id="lucky" className={styles.main} style={{
                 overflowY: "auto"
             }}>{
                 this.state.roll.inRollPage ?
@@ -316,12 +310,13 @@ export default class Lucky extends Cp<Props, State>{
                         }}><ConfigProvider theme={{
                             components: {
                                 Button: {
-                                    contentFontSize: 26
+                                    contentFontSize: 26,
+                                    lineWidth: 2
                                 }
                             }
                         }}>
                             <Button style={{height: "4.5rem", width: "12rem"}} type="dashed" onClick={this.fullScreen} icon={this.state.roll.fullScreened ? <FullscreenExitOutlined /> : <FullscreenOutlined />}>{this.state.roll.fullScreened ? "退出全屏" : "全屏"}</Button>
-                            <Button style={{height: "6rem", width: "14rem"}} type="primary" onClick={this.roll} icon={<GiftOutlined />} loading={this.state.roll.isRolling}>抽奖</Button>
+                            <Button style={{height: "6rem", width: "14rem", fontSize: "30px"}} type="primary" onClick={this.roll} icon={<GiftOutlined />} loading={this.state.roll.isRolling}>抽奖</Button>
                             <Button style={{height: "4.5rem", width: "12rem"}} type="default" onClick={this.resetRoll} icon={<RollbackOutlined />}>返回主页</Button>
                         </ConfigProvider></div>
                         {
@@ -330,7 +325,7 @@ export default class Lucky extends Cp<Props, State>{
                                 display: "flex",
                                 flexFlow: "column nowrap",
                                 alignItems: "center",
-                                marginTop: "1rem"
+                                padding: "1rem 0 8rem"
                             }}>
                                 <h2>恭喜以下同学中奖：</h2>
                                 <ul style={{

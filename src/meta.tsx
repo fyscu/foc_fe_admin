@@ -1,5 +1,5 @@
 ﻿const
-    version = "0.11.0 生日特别版",
+    version = "0.11.1",
     dev = true,
     date = "2024.10.18",
     api = "https://fyapi2.wjlo.cc",
