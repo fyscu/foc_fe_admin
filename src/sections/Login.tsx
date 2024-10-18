@@ -15,13 +15,16 @@ export default function Login(props :Props){
     const
         ref = useRef<ProFormInstance<LoginFormData> | undefined>(),
         [aboutModalOpened, setAboutModalOpened] = useState(false),
+        [loading, setLoading] = useState(false),
         [messageAPI, contextHolder] = message.useMessage(),
         finish = (values :LoginFormData)=>{
+            setLoading(true);
             login(values.username, values.password).catch((reason :any)=>{
                 messageAPI.open({
                     type: "error",
                     content: "请求失败"
                 });
+                setLoading(false);
             }).then(async (value :Response | void)=>{
                 if(value){
                     const response :LoginResponse = await value.json();
@@ -36,17 +39,12 @@ export default function Login(props :Props){
                             localforage.removeItem("password");
                         }
                     }
-                    else{
-                        messageAPI.open({
-                            type: "warning",
-                            content: "使用保存的账户信息登录失败，请检查！"
-                        });
-                        messageAPI.open({
-                            type: "error",
-                            content: response.message
-                        });
-                    }
+                    else messageAPI.open({
+                        type: "error",
+                        content: response.message
+                    });
                 }
+                setLoading(false);
             });
         };
     useEffect(()=>{
@@ -79,6 +77,11 @@ export default function Login(props :Props){
                             >{meta.about}</Modal>
                         </div>
                     }
+                    submitter={{
+                        submitButtonProps: {
+                            loading
+                        }
+                    }}
                 >
                     <ProFormText rules={[{required: true, message: "请输入用户名！"}]} name="username" placeholder="用户名" fieldProps={{
                         size: "large",

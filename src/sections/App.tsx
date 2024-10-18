@@ -54,6 +54,8 @@ export default function App(){
                                 type: "error",
                                 content: response.message
                             });
+                            setLoggedIn(false);
+                            setLoading(false);
                         }
                     }
                 });
@@ -82,7 +84,7 @@ export default function App(){
             else if(await localforage.getItem<string>("username") && await localforage.getItem<string>("password")) tryRelogin();
             else setLoading(false);
         })();
-    });
+    }, []);
     return(
         <ConfigProvider locale={zhCN} wave={{disabled: true}} theme={{
             algorithm: accountType === "super" ? theme.darkAlgorithm : theme.defaultAlgorithm,

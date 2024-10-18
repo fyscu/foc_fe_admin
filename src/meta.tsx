@@ -1,7 +1,7 @@
 ﻿const
-    version = "0.11.3",
+    version = "0.11.4",
     dev = true,
-    date = "2024.10.18",
+    date = "2024.10.19",
     api = "https://fyapi2.wjlo.cc",
     about = (()=>(<div style={{fontSize: 16}}>
         <div style={{display: "flex", justifyContent: "center"}}><img src="https://about.feiyang.ac.cn/assets/logo.png" height={200} alt="logo" /></div>
