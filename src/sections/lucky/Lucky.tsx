@@ -176,9 +176,10 @@ export default class Lucky extends Cp<Props, State>{
         }, async ()=>{
             const
                 delay = randomInt(6, 10) * 1000,
-                data = await this.fetchData<getLuckyResponse>(`${meta.apiDomain}/v1/admin/getLuckyResult?activity_id=${this.state.roll.rollingId}&count=${this.state.roll.count}`, "GET");
+                data = await this.fetchData<getLuckyResponse>(`${meta.apiDomain}/v1/admin/getLuckyResult?activity_id=${this.state.roll.rollingId}&count=${this.state.roll.count}&prize=${this.state.roll.rollingItem === "点击输入奖项" ? null : this.state.roll.rollingItem}`, "GET");
             if(!data || !data.success) this.props.ATFailCallBack("获取抽奖结果失败");
             else{
+                //console.log(data.prizeHistory);
                 const id = setInterval(()=>this.setState({...this.state, roll: {...this.state.roll, current: randomInt(1, parseInt(data.max_luckynum)) + ""}}), 150);
                 for(let i = 0; i < data.winning_user_ids.length; i++){
                     const response = await this.fetchData<GetUserResponse>(`${meta.apiDomain}/v1/status/getUser?uid=${data.winning_user_ids[i]}`, "GET");
@@ -203,7 +204,7 @@ export default class Lucky extends Cp<Props, State>{
                 }
                 setTimeout(()=>{
                     clearInterval(id);
-                    console.log(this.state.roll.result);
+                    //console.log(this.state.roll.result);
                     this.setState({...this.state, roll: {...this.state.roll, isRolling: false, rollingEnded: true, current: data.winning_nums[0]}});
                     confetti({
                         particleCount: this.state.roll.fullScreened ? 500 : 350,

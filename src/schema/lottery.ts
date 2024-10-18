@@ -8,4 +8,6 @@ export type getLuckyResponse = {
     max_luckynum :string;
     //string[][]
     luckyHistory :string;
+    //string[]
+    prizeHistory :string;
 };
