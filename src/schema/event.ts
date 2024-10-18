@@ -22,8 +22,8 @@ export type EventData = {
     signup_start_time :string;
     //Date
     signup_end_time :string;
-    //number[][]？
-    winnum? :string | null;
+    //string[][]
+    winnum :string | null;
     registered :boolean;
     isLucky :"0" | "1";
 };

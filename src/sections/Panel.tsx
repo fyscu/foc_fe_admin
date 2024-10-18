@@ -102,7 +102,7 @@ export default class Panel extends Cp<Props, State>{
                 {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
-                {this.state.currentKey === "settings" ? <Settings ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "settings" ? <Settings fromLucky={false} ATFailCallBack={this.props.ATFailCallBack} /> : null}
             </div>
         );
     }

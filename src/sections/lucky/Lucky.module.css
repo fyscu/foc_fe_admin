@@ -1,10 +1,53 @@
 ﻿.main{
+    padding: 1rem;
+    margin-top: 2rem;
     height: 100dvh;
     width: 100dvw;
     display: flex;
     flex-flow: column nowrap;
+    gap: 1rem;
     background-color: var(--c-menu);
+    color: var(--c-text-main);
 }
-.main ::selection{
+
+::selection{
     background-color: var(--c-boxshadow);
+}
+
+.roll{
+    width: max(60dvw, 30rem);
+    height: 100dvh;
+    align-self: center;
+    display: flex;
+    flex-flow: column nowrap;
+    gap: .5rem;
+}
+
+::-webkit-scrollbar-thumb{
+    background-color: var(--c-grey-2);
+    border-radius: .75rem;
+    border: .5rem solid transparent;
+}
+::-webkit-scrollbar-thumb:hover{
+    background-color: var(--c-grey);
+}
+::-webkit-scrollbar-thumb:active{
+    background-color: var(--c-grey-1);
+}
+::-webkit-scrollbar-track{
+    background-color: var(--c-grey-3);
+}
+::-webkit-scrollbar-corner{
+    height: 0;
+    width: 0;
+    background-color: transparent;
+}
+::-webkit-scrollbar-button{
+    height: 0;
+    width: 0;
+    background-color: transparent;
+}
+/*Firefox 滚动条*/
+*{
+    scrollbar-color: var(--c-grey-2) transparent;
 }

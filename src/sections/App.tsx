@@ -20,21 +20,21 @@ export default function App(){
         [accountType, setAccountType] = useState<LoginResponse["type"]>("super"),
         [messageAPI, contextHolder] = message.useMessage(),
         loginSucceed = (responseData :LoginResponse)=>{
-            setLoading(false);
-            setLoggedIn(true);
             localforage.setItem("access_token", responseData.access_token);
+            setLoggedIn(true);
             localforage.setItem("type", responseData.type);
             setAccountType(responseData.type);
+            setLoading(false);
         },
         tryRelogin = async (message? :string)=>{
-            setLoggedIn(false);
             setLoading(true);
+            setLoggedIn(false);
             reloginTimes++;
             const
                 username = await localforage.getItem<string>("username"),
                 password = await localforage.getItem<string>("password");
             //存在登录信息，尝试自动重新登录
-            if(reloginTimes <= 5 && username && password){
+            if(reloginTimes <= 10 && username && password){
                 login(username, password).catch((reason :any)=>{
                     messageAPI.open({
                         type: "error",
@@ -75,9 +75,9 @@ export default function App(){
     useEffect(()=>{
         (async ()=>{
             if(await isLoggedIn()){
+                setAccountType(await localforage.getItem<LoginResponse["type"]>("type") ?? "super");
                 setLoggedIn(true);
                 setLoading(false);
-                setAccountType(await localforage.getItem<LoginResponse["type"]>("type") ?? "super");
             }
             else if(await localforage.getItem<string>("username") && await localforage.getItem<string>("password")) tryRelogin();
             else setLoading(false);
@@ -85,7 +85,7 @@ export default function App(){
     });
     return(
         <ConfigProvider locale={zhCN} wave={{disabled: true}} theme={{
-            algorithm: theme.darkAlgorithm,
+            algorithm: accountType === "super" ? theme.darkAlgorithm : theme.defaultAlgorithm,
             token: {
                 fontSize: 15
             },
@@ -102,7 +102,8 @@ export default function App(){
                 },
                 Table: {
                     cellPaddingBlock: 10,
-                    cellPaddingInline: 10
+                    cellPaddingInline: 10,
+                    headerBorderRadius: 0
                 }
             }
         }}>

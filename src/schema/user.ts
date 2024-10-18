@@ -9,13 +9,13 @@ export type GetUserNumResponse = {
 //`/v1/status/getUser`
 export type GetUserResponse = {
     success :boolean;
-    request_type :"all" | "";
+    request_type :"all" | "unique_query";
     data :UserData[] | UserData | string;
 };
 
 //`/v1/status/getUser`.data
 export type UserData = {
-    id :number;
+    id :string;
     openid :string;
     token_expiry :string;
     regtime :string;

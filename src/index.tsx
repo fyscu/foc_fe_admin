@@ -18,8 +18,8 @@ else if(await localforage.getItem("alerted-no-offline") === null){
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 mountGetPx();
-export async function load(fail? :boolean){
-    if(fail) root.render(<React.StrictMode><div style={{width: "100dvw", height: "100dvh", display: "grid", placeItems: "center"}}><div>本应用因为出现一个致命问题而崩溃。请刷新重试，或联系管理员。</div></div></React.StrictMode>);
+export async function load(bombApp? :boolean){
+    if(bombApp) root.render(<React.StrictMode><div style={{width: "100dvw", height: "100dvh", display: "grid", placeItems: "center"}}><div>本应用因为出现一个致命问题而崩溃。请刷新重试，或联系管理员。</div></div></React.StrictMode>);
     else root.render(<React.StrictMode><App key={Date.now()} /></React.StrictMode>);
     return "重新加载完毕" as const;
 }

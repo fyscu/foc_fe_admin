@@ -7,6 +7,7 @@ import { whoami } from "../schema/login";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
+    fromLucky :boolean;
 };
 
 type State = {
@@ -35,15 +36,15 @@ export default class Settings extends Cp<Props, State>{
     render() :React.ReactNode{
         return(
             <div id="settings" style={{
-                width: "calc(100dvw - 10rem)"
+                width: this.props.fromLucky ? "" : "calc(100dvw - 10rem)"
             }}>
                 <div style={{
                     display: "flex",
-                    margin: "3rem 3rem 0",
+                    margin: this.props.fromLucky ? "" : "3rem 3rem 0",
                     flexFlow: "column nowrap",
                     gap: "2rem",
                     overflowY: "auto",
-                    minHeight: "calc(100dvh - 3rem)"
+                    minHeight: this.props.fromLucky ? "50dvh" : "calc(100dvh - 3rem)"
                 }}>
                     <div style={{display: "inline-flex", flexFlow: "row nowarp", alignItems: "center", gap: ".25rem"}}>当前登录账号：{this.state.accountInfo ?
                         <>
@@ -61,7 +62,7 @@ export default class Settings extends Cp<Props, State>{
                             }
                         }
                     }}>
-                        <div><Popconfirm title="手残确认" description={<><p>确定要立刻退出管理后台</p><p>并删除账户的登录信息吗？</p></>} okButtonProps={{autoInsertSpace: false}} okType="danger" cancelButtonProps={{autoInsertSpace: false}} onConfirm={this.delete}><Button danger>退出登录并删除登录信息</Button></Popconfirm></div>
+                        <div><Popconfirm title="手残确认" placement="bottom" description={<><p>确定要立刻退出管理后台</p><p>并删除账户的登录信息吗？</p></>} okButtonProps={{autoInsertSpace: false}} okType="danger" cancelButtonProps={{autoInsertSpace: false}} onConfirm={this.delete}><Button danger>退出登录并删除登录信息</Button></Popconfirm></div>
                     </ConfigProvider>
                 </div>
             </div>
