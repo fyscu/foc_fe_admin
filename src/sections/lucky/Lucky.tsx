@@ -95,7 +95,8 @@ export default class Lucky extends Cp<Props, State>{
             key: "roll",
             render: (value :undefined, record :EventData)=><Button type="link" autoInsertSpace={false} onClick={async ()=>{
                 const data = await this.fetchData<GetEventResponse>(`${meta.apiDomain}/v1/status/getEvent?id=${record.id}`, "GET");
-                this.setState(state=>({...state, roll: {... state.roll, inRollPage: true, rollingId: record.id, max: parseInt(data!.activities[0].max_luckynum)}}));
+                if(!data) this.props.ATFailCallBack("获取抽奖数据失败！");
+                else this.setState(state=>({...state, roll: {... state.roll, inRollPage: true, rollingId: record.id, max: parseInt(data.activities[0].max_luckynum)}}));
             }}>抽奖</Button>,
             width: 120
         }

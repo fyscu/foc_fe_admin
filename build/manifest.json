@@ -1,7 +1,7 @@
 {
-    "name": "Feiyang On Cloud Admin Page",
-    "short_name": "FOC_admin",
-    "description": "Admin page for Feiyang On Cloud system.",
+    "name": "云上飞扬管理",
+    "short_name": "云上飞扬管理",
+    "description": "四川大学飞扬俱乐部云上飞扬系统v1.0后台管理页面",
     "start_url": "/",
     "lang": "zh-CN",
     "orientation": "natural",
@@ -9,8 +9,8 @@
     "scope": "/",
     "id": "/",
     "prefer_related_applications": false,
-    "theme_color": "#2383E2",
-    "background_color": "#2383E2",
+    "theme_color": "#2373D2",
+    "background_color": "#2373D2",
     "protocol_handlers": [
         {
             "protocol": "web+foc",
