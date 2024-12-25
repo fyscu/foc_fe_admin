@@ -1,5 +1,5 @@
 ﻿const
-    version = "0.12.0",
+    version = "0.12.1",
     dev = true,
     date = "2024.10.19",
     api = "https://focapi.feiyang.ac.cn",

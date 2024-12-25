@@ -212,7 +212,7 @@ export default class UserManage extends Cp<Props, State>{
         this.customFilter = "";
     }
     componentDidMount(){
-        this.updateTable();
+        this.updateTable(true);
         this.observer = new ResizeObserver(this.resizeCB);
         this.observer.observe(document.body);
     }
@@ -224,39 +224,45 @@ export default class UserManage extends Cp<Props, State>{
         this.setState({cachedInnerHeight: entries[0].contentRect.height});
     }
     changePageSize = (currentPage :number, newSize :number)=>{
-        localforage.setItem("users_pageSize", newSize).then(()=>this.updateTable());
+        localforage.setItem("users_pageSize", newSize).then(()=>this.updateTable(false));
     }
     pageChange = (page :number, pageSize :number)=>{
-        this.setState({currentPage: page}, this.updateTable);
+        this.setState({currentPage: page}, ()=>this.updateTable(false));
     }
     tableChange = (_pagination :TablePaginationConfig, filters :Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>, sorter :SorterResult<UserData> | SorterResult<UserData>[])=>{
         console.log(_pagination, filters, sorter);
-        this.setState({filters}, this.updateTable);
+        this.setState({filters}, ()=>this.updateTable(false));
     }
-    updateTable = ()=>{
+    updateTable = (isFirst :boolean)=>{
         this.setState({loading: true}, async ()=>{
             await this.getDataSize();
-            const pageSize = await iniLocalforage("users_pageSize", 20);
-            this.setState({pageSize}, ()=>{
+            const pageSize = isFirst ? await iniLocalforage("users_pageSize", 20) : this.state.pageSize;
+            console.log(this.state.filters, this.state.currentPage, Math.ceil(this.state.dataSize / pageSize));
+            this.setState({
+                pageSize,
+                currentPage: Math.max(Math.min(this.state.currentPage, Math.ceil(this.state.dataSize / pageSize)), 1)
+            }, ()=>{
                 this.getData().then(()=>this.setState({loading: false}));
             });
         });
     }
-    getDataSize = async ()=>{
-        const url = new URL(`${meta.apiDomain}/v1/admin/getnum/user`);
-        if(this.state.filters.openid && this.state.filters.openid.length !== 2){
-            if(this.state.filters.openid.includes(true)) url.searchParams.append("immed", "1");
-            else url.searchParams.append("immed", "0");
-        }
-        this.appendFilters(url);
-        const data = await this.fetchData<GetUserNumResponse>(url, "GET");
-        if(data){
-            console.log(data.total_users);
-            if(data.success) this.setState({dataSize: data.total_users});
-            //note:这个地方不知道怎么搞，可能出问题
-            else this.setState({dataSize: 0});
-        }
-        else this.props.ATFailCallBack("获取数量数据失败");
+    getDataSize = ()=>{
+        return new Promise(async resolve=>{
+            const url = new URL(`${meta.apiDomain}/v1/admin/getnum/user`);
+            if(this.state.filters.openid && this.state.filters.openid.length !== 2){
+                if(this.state.filters.openid.includes(true)) url.searchParams.append("immed", "1");
+                else url.searchParams.append("immed", "0");
+            }
+            this.appendFilters(url);
+            const data = await this.fetchData<GetUserNumResponse>(url, "GET");
+            if(data){
+                console.log(data.total_users);
+                if(data.success) this.setState({dataSize: data.total_users}, ()=>resolve(undefined));
+                //note:这个地方不知道怎么搞，可能出问题
+                else this.setState({dataSize: 0}, ()=>resolve(undefined));
+            }
+            else this.props.ATFailCallBack("获取数量数据失败");
+        });
     }
     getData = async ()=>{
         const url = new URL(`${meta.apiDomain}/v1/status/getUser`);
