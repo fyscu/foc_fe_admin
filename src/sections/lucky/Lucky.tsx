@@ -11,7 +11,7 @@ import Settings from "../../tabs/Settings";
 import { getLuckyResponse } from "../../schema/lottery";
 import { toUrl, URLLike } from "../../schema/dedicatedTypes";
 import { FullscreenExitOutlined, FullscreenOutlined, GiftOutlined, RollbackOutlined, SettingOutlined } from "@ant-design/icons";
-import { randomInt } from "../../utils/misc";
+import { randomInt } from "../../misc";
 import { GetUserResponse, UserData } from "../../schema/user";
 import confetti from "canvas-confetti";
 import defaultAvatar from "../../schema/defaultAvatar";

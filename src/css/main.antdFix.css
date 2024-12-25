@@ -19,7 +19,7 @@
     flex-flow: column nowrap;
     justify-content: center;
 }
-.phone .ant-typography{
+:is(.phone, .email) .ant-typography{
     margin: 0;
     display: flex;
     flex-flow: row nowrap;

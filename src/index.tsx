@@ -8,7 +8,7 @@ import "./css/main.antdFix.css";
 import App from "./sections/App";
 import meta from "./meta";
 import localforage from "localforage";
-import { mountGetPx } from "./utils/misc";
+import { mountGetPx } from "./misc";
 
 if("serviceWorker" in window.navigator) window.navigator.serviceWorker.register("serviceworker.js");
 else if(await localforage.getItem("alerted-no-offline") === null){

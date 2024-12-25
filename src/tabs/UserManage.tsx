@@ -1,34 +1,48 @@
 ﻿import React, { Component as Cp } from "react";
 import localforage from "localforage";
-import { CheckCircleFilled, CloseCircleFilled } from "@ant-design/icons";
-import { Pagination, Table, Tooltip } from "antd";
+import { CheckCircleFilled, CloseCircleFilled, ExclamationCircleFilled, PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import { Button, Input, Pagination, Popconfirm, Table, Tooltip } from "antd";
 import meta from "../meta";
-import { ColumnsType } from "antd/es/table";
 import { anyObject } from "../main";
 import Paragraph from "antd/es/typography/Paragraph";
 import Text from "antd/es/typography/Text";
-import { getPx, iniLocalforage } from "../utils/misc";
-import { SorterResult, TablePaginationConfig } from "antd/es/table/interface";
-import { GetUserNumResponse, GetUserResponse, UserData } from "../schema/user";
+import { getPx, iniLocalforage } from "../misc";
+import { ColumnGroupType, ColumnType, SorterResult, TablePaginationConfig } from "antd/es/table/interface";
+import { GetUserNumResponse, GetUserResponse, UserData, UserDeleteResponse } from "../schema/user";
+import { NoticeType } from "antd/es/message/interface";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
+    sendMessage :(content :string, type :NoticeType)=>void;
 };
 
 const FilterableFields = ["campus", "role", "available", "uid", "openid", "phone", "email", "immed"] as const;
 
+type EditableCellProps = {
+    title :React.ReactNode;
+    editable :boolean;
+    dataIndex :keyof UserData;
+    record :UserData;
+    handleSave: (record :UserData)=>void;
+};
+
 type State = {
     loading :boolean;
     datas :UserData[];
+    originDatas :UserData[];
     currentPage :number;
     dataSize :number;
     pageSize :number;
     filters :Partial<Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>>;
+    editing :boolean;
+    createOpened :boolean;
+    createLoading :boolean;
+    cachedInnerHeight :number;
 };
 
 /**@once */
 export default class UserManage extends Cp<Props, State>{
-    static columns :ColumnsType<UserData> = [
+    columns :((ColumnGroupType<UserData> | ColumnType<UserData>) & {editable? :boolean;})[] = [
         {
             dataIndex: "id",
             key: "id",
@@ -92,6 +106,7 @@ export default class UserManage extends Cp<Props, State>{
             title: "类型",
             align: "left",
             width: 75,
+            editable: true,
             filters: [
                 {
                     text: "用户",
@@ -108,23 +123,59 @@ export default class UserManage extends Cp<Props, State>{
             dataIndex: "phone",
             key: "phone",
             title: "手机号",
-            //copyable: true
             align: "left",
             width: 170,
-            render: (phone, entry)=><div className="phone" style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>{entry.status === "verified" ? <Tooltip title="已验证"><CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} /></Tooltip> : <Tooltip title="未验证"><CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} /></Tooltip>}<Paragraph copyable={{tooltips: false}}>{phone}</Paragraph></div>,
+            render: (phone, record)=>(
+                <div className="phone" style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>
+                    {record.immed === "0" ?
+                        <Tooltip title="未迁移">
+                            <ExclamationCircleFilled style={{color: "#aa9914", fontSize: "1.15rem"}} />
+                        </Tooltip>
+                        :
+                    record.status === "verified" ?
+                        <Tooltip title="已验证">
+                            <CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} />
+                        </Tooltip>
+                    :   <Tooltip title="未验证">
+                            <CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} />
+                        </Tooltip>
+                    }
+                    <Paragraph copyable={{tooltips: false}}>{phone}</Paragraph>
+                </div>
+            )
         },
         {
             dataIndex: "email",
             key: "email",
             title: "邮件地址",
             align: "left",
-            ellipsis: true
+            ellipsis: true,
+            minWidth: 150,
+            render: (phone, record)=>(
+                <div className="email" style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>
+                    {record.immed === "0" ?
+                        <Tooltip title="未迁移">
+                            <ExclamationCircleFilled style={{color: "#aa9914", fontSize: "1.15rem"}} />
+                        </Tooltip>
+                        :
+                    record.status === "verified" ?
+                        <Tooltip title="已验证">
+                            <CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} />
+                        </Tooltip>
+                    :   <Tooltip title="未验证">
+                            <CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} />
+                        </Tooltip>
+                    }
+                    <Paragraph copyable={{tooltips: false}}>{phone}</Paragraph>
+                </div>
+            )
         },
         {
             dataIndex: "token_expiry",
             key: "token_expiry",
             title: "活跃时间",
             align: "left",
+            ellipsis: true,
             render: token_expiry=>{
                 if(token_expiry !== "0000-00-00 00:00:00"){
                     const date = new Date(token_expiry);
@@ -133,21 +184,44 @@ export default class UserManage extends Cp<Props, State>{
                 }
                 else return "不活跃";
             }
+        },
+        {
+            title: "操作",
+            key: "actions",
+            width: 70,
+            render: (_, record)=><Popconfirm title="确定要删除该用户吗？" okButtonProps={{autoInsertSpace: false}} okType="danger" cancelButtonProps={{autoInsertSpace: false}} onConfirm={()=>this.deleteUser(record)}><Button size="small" type="link" disabled={record.role == "admin"} >删除</Button></Popconfirm>
         }
     ];
+    customFilter :string;
+    observer :ResizeObserver | null = null;
     constructor(props :Props){
         super(props);
         this.state = {
             loading: true,
             datas: [],
+            originDatas: [],
             currentPage: 1,
             dataSize: 0,
             pageSize: 0,
-            filters: {}
+            cachedInnerHeight: window.innerHeight,
+            filters: {},
+            editing: false,
+            createOpened: false,
+            createLoading: false
         };
+        this.customFilter = "";
     }
     componentDidMount(){
         this.updateTable();
+        this.observer = new ResizeObserver(this.resizeCB);
+        this.observer.observe(document.body);
+    }
+    componentWillUnmount(){
+        this.observer!.unobserve(document.body);
+        this.observer!.disconnect();
+    }
+    resizeCB = (entries :ResizeObserverEntry[])=>{
+        this.setState({cachedInnerHeight: entries[0].contentRect.height});
     }
     changePageSize = (currentPage :number, newSize :number)=>{
         localforage.setItem("users_pageSize", newSize).then(()=>this.updateTable());
@@ -159,19 +233,21 @@ export default class UserManage extends Cp<Props, State>{
         console.log(_pagination, filters, sorter);
         this.setState({filters}, this.updateTable);
     }
-    updateTable = async ()=>{
+    updateTable = ()=>{
         this.setState({loading: true}, async ()=>{
-            this.getDataSize();
+            await this.getDataSize();
             const pageSize = await iniLocalforage("users_pageSize", 20);
             this.setState({pageSize}, ()=>{
-                this.getData().then(()=>{
-                    this.setState({loading: false});
-                });
+                this.getData().then(()=>this.setState({loading: false}));
             });
         });
     }
     getDataSize = async ()=>{
         const url = new URL(`${meta.apiDomain}/v1/admin/getnum/user`);
+        if(this.state.filters.openid && this.state.filters.openid.length !== 2){
+            if(this.state.filters.openid.includes(true)) url.searchParams.append("immed", "1");
+            else url.searchParams.append("immed", "0");
+        }
         this.appendFilters(url);
         const data = await this.fetchData<GetUserNumResponse>(url, "GET");
         if(data){
@@ -196,8 +272,43 @@ export default class UserManage extends Cp<Props, State>{
             this.props.ATFailCallBack("获取数据失败");
             this.setState({datas: []});
         }
-        //console.log(data);
-        this.setState({datas: data.data as UserData[]});
+        else this.setState({originDatas: data.data as UserData[]}, this.applyCustomFilter);
+    }
+    customChangeCB = (event :React.ChangeEvent<HTMLInputElement>)=>{
+        this.customFilter = event.currentTarget.value;
+        const cached = event.currentTarget.value;
+        setTimeout(()=>{
+            if(cached === this.customFilter) this.applyCustomFilter();
+        }, 500);
+    }
+    applyCustomFilter = ()=>{
+        this.setState({datas: this.state.originDatas.filter(value=>{
+            for(const i in value){
+                const I = i as keyof UserData;
+                if(I === "avatar" || I === "email_status" || I === "status" || value[I] === null) continue;
+                if((value[I] + "").includes(this.customFilter)) return true;
+            }
+            return false;
+        })});
+    }
+    deleteUser = async (record :UserData)=>{
+        const url = new URL(`${meta.apiDomain}/v1/user/delete`);
+        const response = await this.fetchData<UserDeleteResponse>(url, "POST", {}, {
+            openid: record.openid
+        });
+        if(response && response.success) this.props.sendMessage(response.message, "success");
+        else this.props.sendMessage("出现错误，请刷新重试", "error");
+    }
+    createUser = async ()=>{
+        this.setState({createLoading: true});
+        //todo
+        setTimeout(() => {
+            this.setState({
+                createLoading: false,
+                createOpened: false
+            });
+        }, 1000);
+        
     }
     private appendFilters(url :URL) :URL{
         if(Object.keys(this.state.filters).length !== 0) for(let i in this.state.filters){
@@ -236,6 +347,9 @@ export default class UserManage extends Cp<Props, State>{
         });
         return await (await response).json();
     }
+    edit = ()=>{
+
+    }
     render() :React.ReactNode{
         return(
             <div id="users" style={{
@@ -244,17 +358,21 @@ export default class UserManage extends Cp<Props, State>{
                 width: "calc(100dvw - 10rem)"
             }}>
                 <div style={{
-                    height: "10rem"
+                    height: "2rem",
+                    display: "flex",
+                    flexFlow: "row nowrap",
+                    gap: ".5rem",
+                    padding: "1rem"
                 }}>
-                    操作区
+                    <Input onChange={this.customChangeCB} prefix={<SearchOutlined />} placeholder="搜索本页内容..." />
                 </div>
                 <Table<UserData>
-                    columns={UserManage.columns}
+                    columns={this.columns}
                     rowKey={record=>record.id}
                     loading={this.state.loading}
                     dataSource={this.state.datas}
                     pagination={false}
-                    scroll={{y: window.innerHeight - getPx("14rem") - 43}}
+                    scroll={{y: this.state.cachedInnerHeight - getPx("8rem") - 43}}
                     onChange={this.tableChange}
                 />
                 <div style={{

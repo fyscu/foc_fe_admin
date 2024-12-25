@@ -9,6 +9,7 @@ import localforage from "localforage";
 import { load } from "..";
 import { isLoggedIn, login, LoginResponse } from "../schema/login";
 import Lucky from "./lucky/Lucky";
+import { NoticeType } from "antd/es/message/interface";
 
 let reloginTimes = 0;
 
@@ -25,6 +26,11 @@ export default function App(){
             localforage.setItem("type", responseData.type);
             setAccountType(responseData.type);
             setLoading(false);
+        },
+        sendMessage = (content :string, type :NoticeType)=>{
+            messageAPI.open({
+                content, type
+            });
         },
         tryRelogin = async (message? :string)=>{
             setLoading(true);
@@ -115,7 +121,7 @@ export default function App(){
                 alignItems: "center",
                 justifyContent: "center"
             }}>
-                {loading ? null : loggedIn ? accountType === "super" ? <Panel ATFailCallBack={tryRelogin} /> : <Lucky ATFailCallBack={tryRelogin} /> : <Login succeedCallBack={loginSucceed} />}
+                {loading ? null : loggedIn ? accountType === "super" ? <Panel sendMessage={sendMessage} ATFailCallBack={tryRelogin} /> : <Lucky ATFailCallBack={tryRelogin} /> : <Login succeedCallBack={loginSucceed} />}
                 {loading ? <Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} /> : null}
             </div>
         </ConfigProvider>

@@ -1,7 +1,7 @@
 {
   "name": "foc_fe_admin",
   "homepage": "/",
-  "version": "0.11.4",
+  "version": "0.12.0",
   "author": "LJM12914",
   "private": true,
   "dependencies": {

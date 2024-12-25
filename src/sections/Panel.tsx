@@ -10,9 +10,11 @@ import OrderManage from "../tabs/OrderManage";
 import EventManage from "../tabs/EventManage";
 import Statistics from "../tabs/Statistics";
 import Settings from "../tabs/Settings";
+import { NoticeType } from "antd/es/message/interface";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
+    sendMessage :(content :string, type :NoticeType)=>void;
 };
 
 type State = {
@@ -98,7 +100,7 @@ export default class Panel extends Cp<Props, State>{
                         >{meta.about}</Modal>
                     </div>
                 </div>
-                {this.state.currentKey === "users" ? <UserManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "users" ? <UserManage sendMessage={this.props.sendMessage} ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
