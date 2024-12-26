@@ -367,7 +367,7 @@ export default class UserManage extends Pc<Props, State>{
         this.setState({datas: this.state.originDatas.filter(value=>{
             for(const i in value){
                 const I = i as keyof UserData;
-                if(I === "avatar" || I === "email_status" || I === "status" || value[I] === null) continue;
+                if(I === "immed" || I === "available" || I === "campus" || I === "regtime" || I === "avatar" || I === "email_status" || I === "status" || I === "role" || I === "token_expiry" || I === "wants" || value[I] === null) continue;
                 if((value[I] + "").includes(this.customFilter)) return true;
             }
             return false;
