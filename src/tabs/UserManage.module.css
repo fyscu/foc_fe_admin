@@ -1,0 +1,72 @@
+﻿.users{
+    display: flex;
+    flex-flow: column nowrap;
+    width: calc(100dvw - 10rem);
+}
+.search{
+    height: 2rem;
+    display: flex;
+    flex-flow: row nowrap;
+    gap: .5rem;
+    padding: 1rem;
+}
+.pagination{
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    height: 4rem;
+}
+.panel{
+    background-color: #1d1d1d90;
+    backdrop-filter: blur(2px);
+    padding: .2rem;
+    position: absolute;
+    z-index: 190;
+    border-radius: .5rem;
+}
+.available{
+    display: flex;
+    flex-flow: row nowrap;
+    gap: .5rem;
+}
+.openid{
+    display: flex;
+    width: 100%;
+    flex-flow: row nowrap;
+    gap: .2rem;
+}
+.openidInner{
+    max-width: calc(100% - 15px - .2rem);
+}
+.openidText{
+    overflow: hidden;
+    text-overflow: "ellipsis";
+}
+.phone{
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    gap: .25rem;
+}
+.error{
+    color: #861a1a;
+    font-size: 1.15rem;
+}
+.warning{
+    color: #aa9914;
+    font-size: 1.15rem;
+}
+.success{
+    color: #136630;
+    font-size: 1.15rem;
+}
+.editRole{
+    display: flex;
+    flex-flow: column nowrap;
+    gap: .5rem;
+    padding: .3rem;
+}
+.campusSelect{
+    width: 5rem;
+}

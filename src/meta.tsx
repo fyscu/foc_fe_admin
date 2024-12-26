@@ -1,10 +1,10 @@
 ﻿const
-    version = "0.12.1",
+    version = "0.12.2",
     dev = true,
-    date = "2024.10.19",
+    date = "2024.12.26",
     api = "https://focapi.feiyang.ac.cn",
     about = (()=>(<div style={{fontSize: 16}}>
-        <div style={{display: "flex", justifyContent: "center"}}><img src="https://about.feiyang.ac.cn/assets/logo.png" height={200} alt="logo" /></div>
+        <div style={{display: "flex", justifyContent: "center"}}><img src="https://feiyang.ac.cn/img/logo1080.png" height={200} alt="logo" /></div>
         <h3 style={{marginBottom: "1rem"}}>关于云上飞扬</h3>
         <blockquote style={{color: "var(--c-grey-4)"}}>前身：小川电脑管家，是一款面向全体四川大学学生的个人设备管理维护的微信小程序，同学可以在该小程序上实现<strong>个人设备报修</strong>、<strong>设备问题搜索</strong>等功能，我们旨在为大家提供一个完备的<strong>个人设备一体化服务系统</strong>，让学习和生活变得便捷高效！</blockquote>
         <h4 style={{marginBottom: "1rem"}}>云上飞扬 1.0</h4>
@@ -20,11 +20,11 @@
                     <td>胡宗尧</td><td>小程序开发</td>
                 </tr>
                 <tr>
-                    <td><img src="https://cdn.wjlo.cc/br/picture/wjlavatar.png" alt="王嘉麟的头像" height={80} /></td>
+                    <td><img src="https://lab.feiyang.ac.cn/images/wangjialin.jpg" alt="王嘉麟的头像" height={80} /></td>
                     <td><a href="//wjlo.cc" target="_blank">王嘉麟</a></td><td>后端开发</td>
                 </tr>
                 <tr>
-                    <td><img src="https://www.ljm.im/avatar/512.png" alt="林峻茗的头像" height={80} /></td>
+                    <td><img src="https://lab.feiyang.ac.cn/images/linjunming.jpg" alt="林峻茗的头像" height={80} /></td>
                     <td><a href="//i.ljm.im" target="_blank">林峻茗</a></td><td>管理后台开发</td>
                 </tr>
             </tbody>

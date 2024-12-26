@@ -1,13 +1,15 @@
-﻿import React, { Component as Cp } from "react";
+﻿import React, { PureComponent as Pc } from "react";
 import localforage from "localforage";
-import { CheckCircleFilled, CloseCircleFilled, ExclamationCircleFilled, PlusOutlined, SearchOutlined } from "@ant-design/icons";
-import { Button, Input, Pagination, Popconfirm, Table, Tooltip } from "antd";
+import styles from "./UserManage.module.css";
+import mainStyles from "../css/main.module.css";
+import _ from "lodash";
+import { CheckCircleFilled, CloseCircleFilled, ExclamationCircleFilled, SearchOutlined } from "@ant-design/icons";
+import { Button, Checkbox, Input, InputRef, Pagination, Popconfirm, Radio, Select, Slider, Table, Tooltip } from "antd";
 import meta from "../meta";
 import { anyObject } from "../main";
-import Paragraph from "antd/es/typography/Paragraph";
 import Text from "antd/es/typography/Text";
 import { getPx, iniLocalforage } from "../misc";
-import { ColumnGroupType, ColumnType, SorterResult, TablePaginationConfig } from "antd/es/table/interface";
+import { ColumnType, SorterResult, TablePaginationConfig } from "antd/es/table/interface";
 import { GetUserNumResponse, GetUserResponse, UserData, UserDeleteResponse } from "../schema/user";
 import { NoticeType } from "antd/es/message/interface";
 
@@ -16,15 +18,50 @@ type Props = {
     sendMessage :(content :string, type :NoticeType)=>void;
 };
 
-const FilterableFields = ["campus", "role", "available", "uid", "openid", "phone", "email", "immed"] as const;
+const
+    //todo:展示技术员的available并支持筛选
+    FilterableFields = ["campus", "role", "available", "openid", "immed"] as const,
+    //所有role相关的属性都需要在role修改表单中一起提交
+    EditableFields = ["campus", "role", "email", "phone", "nickname"] as const,
+    EditRolePermittedValues = ["江安", "望江", "华西"],
+    EditWantsMarks :Record<string | number, React.ReactNode> = {
+        0: "暂停接单",
+        25: "减少接单",
+        50: "正常接单",
+        75: "增多接单",
+        100: "疯狂接单"
+    };
 
-type EditableCellProps = {
-    title :React.ReactNode;
-    editable :boolean;
-    dataIndex :keyof UserData;
-    record :UserData;
-    handleSave: (record :UserData)=>void;
-};
+function convertWants(input :UserData["wants"]){
+    switch(input){
+        case "a": return 0;
+        case "b": return 25;
+        case "c": return 50;
+        case "d": return 75;
+        case "e": return 100;
+    }
+}
+
+function convertWantsB(input :number) :UserData["wants"] | undefined{
+    switch(input){
+        case 0: return "a";
+        case 25: return "b";
+        case 50: return "c";
+        case 75: return "d";
+        case 100: return "e";
+    }
+}
+
+function convertAvailableB(input :number) :UserData["available"] | undefined{
+    switch(input){
+        case 0: return "0";
+        case 20: return "1";
+        case 40: return "2";
+        case 60: return "3";
+        case 80: return "4";
+        case 100: return "5";
+    }
+}
 
 type State = {
     loading :boolean;
@@ -35,14 +72,18 @@ type State = {
     pageSize :number;
     filters :Partial<Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>>;
     editing :boolean;
+    editorTop :number;
+    editorLeft :number;
+    editorVisible :boolean;
+    editorKey :number;
     createOpened :boolean;
     createLoading :boolean;
     cachedInnerHeight :number;
 };
 
 /**@once */
-export default class UserManage extends Cp<Props, State>{
-    columns :((ColumnGroupType<UserData> | ColumnType<UserData>) & {editable? :boolean;})[] = [
+export default class UserManage extends Pc<Props, State>{
+    columns :ColumnType<UserData>[] = [
         {
             dataIndex: "id",
             key: "id",
@@ -66,8 +107,12 @@ export default class UserManage extends Cp<Props, State>{
                 }
             ],
             ellipsis: true,
-            width: 200,
-            render: openid=>openid ? <div className="openid" style={{display: "flex", width: "100%", flexFlow: "row nowrap", gap: ".2rem"}}><Text copyable={{text: openid, tooltips: false}} /><div style={{maxWidth: "calc(100% - 15px - .2rem)"}}><div title={openid} style={{overflow: "hidden", textOverflow: "ellipsis"}}>{openid}</div></div></div> : "未迁移"
+            width: 180,
+            render: openid=>openid ?
+                <div className={`openid ${styles.openid}`}>
+                    <Text copyable={{text: openid, tooltips: false}} />
+                    <div className={styles.openidInner}><div title={openid} className={styles.openidText}>{openid}</div></div>
+                </div> : "未迁移"
         },
         {
             dataIndex: "nickname",
@@ -76,7 +121,11 @@ export default class UserManage extends Cp<Props, State>{
             align: "left",
             ellipsis: true,
             render: nickname=><Tooltip title={nickname} placement="top">{nickname}</Tooltip>,
-            width: 125
+            width: 125,
+            //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
+            onCell: (data :UserData)=>{
+                return {onDoubleClick: event=>this.startEdit(data, event, "nickname")};
+            }
         },
         {
             dataIndex: "campus",
@@ -98,7 +147,12 @@ export default class UserManage extends Cp<Props, State>{
             ],
             align: "left",
             render: (campus, entry)=>entry.immed === "1" ? campus : "未迁移",
-            width: 70
+            width: 70,
+            //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
+            onCell: (data :UserData)=>{
+                if(data.campus as string !== "虚空") return {onDoubleClick: event=>this.startEdit(data, event, "campus")};
+                else return {};
+            }
         },
         {
             dataIndex: "role",
@@ -106,43 +160,48 @@ export default class UserManage extends Cp<Props, State>{
             title: "类型",
             align: "left",
             width: 75,
-            editable: true,
             filters: [
                 {
-                    text: "用户",
-                    value: "user"
+                    text: "管理员",
+                    value: "admin"
                 },
                 {
                     text: "技术员",
                     value: "technician"
+                },
+                {
+                    text: "用户",
+                    value: "user"
                 }
             ],
-            render: role=>role === "admin" ? "管理员" : role === "technician" ? "技术员" : "用户"
+            render: role=>role === "admin" ? "管理员" : role === "technician" ? <Tooltip mouseEnterDelay={0.5} title="双击编辑可用状态和接单意愿">技术员</Tooltip> : <Tooltip mouseEnterDelay={0.5} title="双击编辑报修限额">用户</Tooltip>,
+            //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
+            onCell: (data :UserData)=>{
+                if(data.role !== "admin") return {onDoubleClick: event=>this.startEdit(data, event, "role")};
+                else return {};
+            }
         },
         {
             dataIndex: "phone",
             key: "phone",
             title: "手机号",
             align: "left",
-            width: 170,
+            width: 150,
             render: (phone, record)=>(
-                <div className="phone" style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>
+                <div className={`phone ${styles.phone}`}>
                     {record.immed === "0" ?
-                        <Tooltip title="未迁移">
-                            <ExclamationCircleFilled style={{color: "#aa9914", fontSize: "1.15rem"}} />
-                        </Tooltip>
-                        :
-                    record.status === "verified" ?
-                        <Tooltip title="已验证">
-                            <CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} />
-                        </Tooltip>
-                    :   <Tooltip title="未验证">
-                            <CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} />
-                        </Tooltip>
+                        <Tooltip title="未迁移"><ExclamationCircleFilled className={styles.warning} /></Tooltip>
+                    :record.status === "verified" ?
+                        <Tooltip title="已验证"><CheckCircleFilled className={styles.success} /></Tooltip>
+                    :   <Tooltip title="未验证"><CloseCircleFilled className={styles.error} /></Tooltip>
                     }
-                    <Paragraph copyable={{tooltips: false}}>{phone}</Paragraph>
+                    {phone}
                 </div>
-            )
+            ),
+            //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
+            onCell: (data :UserData)=>{
+                return {onDoubleClick: event=>this.startEdit(data, event, "phone")};
+            }
         },
         {
             dataIndex: "email",
@@ -151,24 +210,24 @@ export default class UserManage extends Cp<Props, State>{
             align: "left",
             ellipsis: true,
             minWidth: 150,
-            render: (phone, record)=>(
-                <div className="email" style={{display: "flex", flexFlow: "row nowrap", alignItems: "center", gap: ".25rem"}}>
+            render: (email, record)=>(
+                <div className={`email ${styles.phone}`}>
                     {record.immed === "0" ?
-                        <Tooltip title="未迁移">
-                            <ExclamationCircleFilled style={{color: "#aa9914", fontSize: "1.15rem"}} />
-                        </Tooltip>
-                        :
-                    record.status === "verified" ?
-                        <Tooltip title="已验证">
-                            <CheckCircleFilled style={{color: "#136630", fontSize: "1.15rem"}} />
-                        </Tooltip>
-                    :   <Tooltip title="未验证">
-                            <CloseCircleFilled style={{color: "#861a1a", fontSize: "1.15rem"}} />
-                        </Tooltip>
+                        <Tooltip title="未迁移"><ExclamationCircleFilled className={styles.warning} /></Tooltip>
+                    :record.status === "verified" ?
+                        <Tooltip title="已验证"><CheckCircleFilled className={styles.success} /></Tooltip>
+                    :   <Tooltip title="未验证"><CloseCircleFilled className={styles.error} /></Tooltip>
                     }
-                    <Paragraph copyable={{tooltips: false}}>{phone}</Paragraph>
+                    <div className={`openid ${styles.openid}`}>
+                        <Text copyable={{text: email, tooltips: false}} />
+                        <div className={styles.openidInner}><div title={email} className={styles.openidText}>{email}</div></div>
+                    </div>
                 </div>
-            )
+            ),
+            //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
+            onCell: (data :UserData)=>{
+                return {onDoubleClick: event=>this.startEdit(data, event, "email")};
+            }
         },
         {
             dataIndex: "token_expiry",
@@ -192,8 +251,19 @@ export default class UserManage extends Cp<Props, State>{
             render: (_, record)=><Popconfirm title="确定要删除该用户吗？" okButtonProps={{autoInsertSpace: false}} okType="danger" cancelButtonProps={{autoInsertSpace: false}} onConfirm={()=>this.deleteUser(record)}><Button size="small" type="link" disabled={record.role == "admin"} >删除</Button></Popconfirm>
         }
     ];
-    customFilter :string;
+    customFilter :string = "";
     observer :ResizeObserver | null = null;
+    editorRef :React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
+    editorInputRef :React.RefObject<InputRef> = React.createRef<InputRef>();
+    editMouseDownInside :boolean = false;
+    editingRecord :UserData | null = null;
+    editingValue :string = "";
+    editRole :{
+        isTechnician :boolean;
+        available :UserData["available"];
+        wants :UserData["wants"];
+    } | null = null;
+    editingField :typeof EditableFields[number] | null = null;
     constructor(props :Props){
         super(props);
         this.state = {
@@ -202,14 +272,17 @@ export default class UserManage extends Cp<Props, State>{
             originDatas: [],
             currentPage: 1,
             dataSize: 0,
-            pageSize: 0,
+            pageSize: 20,
             cachedInnerHeight: window.innerHeight,
             filters: {},
             editing: false,
+            editorKey: Date.now(),
+            editorTop: 0,
+            editorLeft: 0,
+            editorVisible: false,
             createOpened: false,
             createLoading: false
         };
-        this.customFilter = "";
     }
     componentDidMount(){
         this.updateTable(true);
@@ -224,7 +297,9 @@ export default class UserManage extends Cp<Props, State>{
         this.setState({cachedInnerHeight: entries[0].contentRect.height});
     }
     changePageSize = (currentPage :number, newSize :number)=>{
-        localforage.setItem("users_pageSize", newSize).then(()=>this.updateTable(false));
+        localforage.setItem("users_pageSize", newSize).then(()=>{
+            this.setState({pageSize: newSize}, ()=>this.updateTable(false));
+        });
     }
     pageChange = (page :number, pageSize :number)=>{
         this.setState({currentPage: page}, ()=>this.updateTable(false));
@@ -234,6 +309,7 @@ export default class UserManage extends Cp<Props, State>{
         this.setState({filters}, ()=>this.updateTable(false));
     }
     updateTable = (isFirst :boolean)=>{
+        console.log("updatetable");
         this.setState({loading: true}, async ()=>{
             await this.getDataSize();
             const pageSize = isFirst ? await iniLocalforage("users_pageSize", 20) : this.state.pageSize;
@@ -353,23 +429,85 @@ export default class UserManage extends Cp<Props, State>{
         });
         return await (await response).json();
     }
-    edit = ()=>{
-
+    startEdit = (data :UserData, event :React.MouseEvent<any>, field :typeof EditableFields[number])=>{
+        console.log(data, event, data[field]);
+        let element = event.target as HTMLElement;
+        while(element.tagName !== "TD" && element.parentElement) element = element.parentElement;
+        if(element.tagName === "TD"){
+            const {top, left, height, width} = element.getBoundingClientRect();
+            document.addEventListener("mousedown", this.editCancelMouseDownCB);
+            document.addEventListener("mouseup", this.editCancelMouseUpCB);
+            //`keypress` 居然是弃用的
+            document.addEventListener("keydown", this.editCancelKeyCB);
+            this.editingRecord = data;
+            this.editingValue = data[field];
+            this.editingField = field;
+            this.editRole = {
+                isTechnician: data.role === "technician",
+                available: data.available,
+                wants: data.wants
+            };
+            this.setState({
+                editing: true
+            }, ()=>{
+                const {height: eHeight, width: eWidth} = this.editorRef.current!.getBoundingClientRect();
+                this.setState({
+                    editorVisible: true,
+                    editorTop: top + (height - eHeight) / 2,
+                    editorLeft: left + (width - eWidth) / 2,
+                });
+                //后处理
+                switch(this.editingField){
+                    case "campus":
+                        break;
+                    case "role":
+                        break;
+                    default:
+                        setTimeout(()=>this.editorInputRef.current!.focus({cursor: "all"}), 0);
+                        break;
+                }
+            });
+        }
+    }
+    editCancelMouseDownCB = (event :MouseEvent)=>{
+        let element = event.target as HTMLElement;
+        while(element !== this.editorRef.current! && !element.classList.contains("ant-select-dropdown") && element.tagName !== "BODY" && element.parentElement) element = element.parentElement;
+        this.editMouseDownInside = element.tagName !== "BODY";
+    }
+    editCancelMouseUpCB = (event :MouseEvent)=>{
+        if(!this.editMouseDownInside){
+            let element = event.target as HTMLElement;
+            while(element !== this.editorRef.current! && !element.classList.contains("ant-select-dropdown") && element.tagName !== "BODY" && element.parentElement) element = element.parentElement;
+            if(element.tagName === "BODY") this.endEdit(true);
+        }
+    }
+    editCancelKeyCB = (event :KeyboardEvent)=>{
+        if(event.key === "Enter") this.endEdit(false);
+        else if(event.key === "Escape") this.endEdit(true);
+    }
+    endEdit = (cancel :boolean)=>{
+        document.removeEventListener("mousedown", this.editCancelMouseDownCB);
+        document.removeEventListener("mouseup", this.editCancelMouseUpCB);
+        document.removeEventListener("keydown", this.editCancelKeyCB);
+        if(!cancel){
+            console.log("save", this.editingField, this.editingValue, this.editingRecord);
+            if(this.editingField == "role") console.log(this.editRole);
+            //todo: 提交数据
+        }
+        if(this.editingField === "role") this.editRole = null;
+        this.editingRecord = null;
+        this.editingValue = "";
+        this.editingField = null;
+        this.editRole = null;
+        this.setState({
+            editing: false,
+            editorVisible: false
+        });
     }
     render() :React.ReactNode{
         return(
-            <div id="users" style={{
-                display: "flex",
-                flexFlow: "column nowrap",
-                width: "calc(100dvw - 10rem)"
-            }}>
-                <div style={{
-                    height: "2rem",
-                    display: "flex",
-                    flexFlow: "row nowrap",
-                    gap: ".5rem",
-                    padding: "1rem"
-                }}>
+            <div id="users" className={styles.users}>
+                <div className={styles.search}>
                     <Input onChange={this.customChangeCB} prefix={<SearchOutlined />} placeholder="搜索本页内容..." />
                 </div>
                 <Table<UserData>
@@ -381,15 +519,96 @@ export default class UserManage extends Cp<Props, State>{
                     scroll={{y: this.state.cachedInnerHeight - getPx("8rem") - 43}}
                     onChange={this.tableChange}
                 />
-                <div style={{
-                    display: "flex",
-                    flexFlow: "column nowrap",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    height: "4rem"
-                }}>
+                <div className={styles.pagination}>
                     <Pagination defaultCurrent={1} current={this.state.currentPage} total={this.state.dataSize} showSizeChanger onShowSizeChange={this.changePageSize} onChange={this.pageChange} pageSize={this.state.pageSize} pageSizeOptions={[5, 10, 20, 30, 40, 50, 75, 100, 200]} />
                 </div>
+                <div ref={this.editorRef} className={`${mainStyles.noselect} ${styles.panel}`} style={{
+                    visibility: this.state.editorVisible ? "visible" : "hidden",
+                    border: this.editingField === "role" ? "solid .125rem #5e87c9" : "",
+                    top: this.state.editorTop,
+                    left: this.state.editorLeft
+                }}>{this.state.editing ?
+                    this.editingField === "campus" ?
+                    <Select
+                        className={styles.campusSelect}
+                        defaultValue={EditRolePermittedValues.includes(this.editingValue) ? this.editingValue : ""}
+                        onChange={data=>this.editingValue = data}
+                    >
+                        <Select.Option key="江安">江安</Select.Option>
+                        <Select.Option key="望江">望江</Select.Option>
+                        <Select.Option key="华西">华西</Select.Option>
+                    </Select>
+                    : this.editingField === "role" ?
+                    <div className={styles.editRole}>
+                        <Radio.Group
+                            defaultValue={this.editingValue}
+                            onChange={event=>{
+                                this.editingValue = event.target.value;
+                                this.editRole = {
+                                    ...this.editRole!,
+                                    isTechnician: event.target.value === "technician"
+                                };
+                                this.setState({editorKey: this.state.editorKey + 1});
+                            }}
+                            options={[
+                                {
+                                    label: "技术员",
+                                    value: "technician"
+                                },
+                                {
+                                    label: "用户",
+                                    value: "user"
+                                }
+                            ]}
+                            optionType="button"
+                        />
+                        {this.editRole!.isTechnician ? <>
+                            <label className={styles.available}>
+                                <Checkbox
+                                    title="是否可用"
+                                    defaultChecked={this.editRole!.available === "1"}
+                                    onChange={event=>{
+                                        console.log(event);
+                                        this.editRole!.available = event.target.checked ? "1" : "0";
+                                    }}
+                                />可用
+                            </label>
+                            <label>接单意愿
+                                <Slider
+                                    onChange={data=>{
+                                        this.editRole = {
+                                            ...this.editRole!,
+                                            wants: convertWantsB(data)!
+                                        };
+                                    }}
+                                    defaultValue={convertWants(this.editRole!.wants)}
+                                    disabled={!this.editRole!.isTechnician}
+                                    step={null}
+                                    marks={{0:"a",25:"b",50:"c",75:"d",100:"e"}}
+                                    tooltip={{formatter: value=>EditWantsMarks[value ?? 0]}}
+                                />
+                            </label></> : <label>报修限额
+                                <Slider
+                                    onChange={data=>{
+                                        this.editRole = {
+                                            ...this.editRole!,
+                                            available: convertAvailableB(data)!
+                                        };
+                                    }}
+                                    defaultValue={parseInt(this.editRole!.available)}
+                                    step={20}
+                                    tooltip={{formatter: value=>(value ?? 0) / 20}}
+                                />
+                            </label>
+                        }
+                    </div>
+                    :<Input
+                        style={{width: this.editingField === "email" ? "14rem" : this.editingField === "nickname" ? "7rem" : "10rem"}}
+                        ref={this.editorInputRef}
+                        placeholder="输入值..."
+                        onChange={event=>this.editingValue = event.target.value}
+                        defaultValue={this.editingValue} />
+                : null}</div>
             </div>
         );
     }

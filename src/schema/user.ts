@@ -28,7 +28,9 @@ export type UserData = {
     phone :string;
     status :"verified" | "pending";
     immed :"0" | "1";
-    available :"0" | "1";
+    /**技术员：是否可用，`"0" | "1"`；用户：报修限额，`"0" | "1" | "2" | "3" | "4" | "5"`*/
+    available :"0" | "1" | "2" | "3" | "4" | "5";
+    wants :"a" | "b" | "c" | "d" | "e";
 };
 
 //`/v1/user/delete`.data
