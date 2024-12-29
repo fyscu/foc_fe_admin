@@ -2,7 +2,6 @@
 import localforage from "localforage";
 import styles from "./UserManage.module.css";
 import mainStyles from "../css/main.module.css";
-import _ from "lodash";
 import { CheckCircleFilled, CloseCircleFilled, ExclamationCircleFilled, SearchOutlined } from "@ant-design/icons";
 import { Button, Checkbox, Input, InputRef, Pagination, Popconfirm, Radio, Select, Slider, Table, Tooltip } from "antd";
 import meta from "../meta";
@@ -12,6 +11,7 @@ import { getPx, iniLocalforage } from "../misc";
 import { ColumnType, SorterResult, TablePaginationConfig } from "antd/es/table/interface";
 import { GetUserNumResponse, GetUserResponse, UserData, UserDeleteResponse } from "../schema/user";
 import { NoticeType } from "antd/es/message/interface";
+import { URLLike } from "../schema/dedicatedTypes";
 
 type Props = {
     ATFailCallBack :(message?: string)=>void;
@@ -22,7 +22,7 @@ const
     //todo:展示技术员的available并支持筛选
     FilterableFields = ["campus", "role", "available", "openid", "immed"] as const,
     //所有role相关的属性都需要在role修改表单中一起提交
-    EditableFields = ["campus", "role", "email", "phone", "nickname"] as const,
+    EditableFields :(keyof UserData)[] = ["campus", "role", "email", "phone", "nickname"],
     EditRolePermittedValues = ["江安", "望江", "华西"],
     EditWantsMarks :Record<string | number, React.ReactNode> = {
         0: "暂停接单",
@@ -108,6 +108,8 @@ export default class UserManage extends Pc<Props, State>{
             ],
             ellipsis: true,
             width: 180,
+            defaultFilteredValue: [true],
+            filteredValue: [true],
             render: openid=>openid ?
                 <div className={`openid ${styles.openid}`}>
                     <Text copyable={{text: openid, tooltips: false}} />
@@ -174,7 +176,7 @@ export default class UserManage extends Pc<Props, State>{
                     value: "user"
                 }
             ],
-            render: role=>role === "admin" ? "管理员" : role === "technician" ? <Tooltip mouseEnterDelay={0.5} title="双击编辑可用状态和接单意愿">技术员</Tooltip> : <Tooltip mouseEnterDelay={0.5} title="双击编辑报修限额">用户</Tooltip>,
+            render: role=>role === "admin" ? "管理员" : role === "technician" ? <Tooltip mouseEnterDelay={0.5} title="双击编辑接单意愿">技术员</Tooltip> : <Tooltip mouseEnterDelay={0.5} title="双击编辑报修余额">用户</Tooltip>,
             //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
             onCell: (data :UserData)=>{
                 if(data.role !== "admin") return {onDoubleClick: event=>this.startEdit(data, event, "role")};
@@ -248,16 +250,16 @@ export default class UserManage extends Pc<Props, State>{
             title: "操作",
             key: "actions",
             width: 70,
-            render: (_, record)=><Popconfirm title="确定要删除该用户吗？" okButtonProps={{autoInsertSpace: false}} okType="danger" cancelButtonProps={{autoInsertSpace: false}} onConfirm={()=>this.deleteUser(record)}><Button size="small" type="link" disabled={record.role == "admin"} >删除</Button></Popconfirm>
+            render: (_, record)=><Popconfirm title="确定要删除该用户吗？" okButtonProps={{autoInsertSpace: false}} okType="danger" cancelButtonProps={{autoInsertSpace: false}} onConfirm={()=>this.deleteUser(record)}><Button size="small" type="link" disabled={record.role === "admin"} >删除</Button></Popconfirm>
         }
     ];
     customFilter :string = "";
     observer :ResizeObserver | null = null;
-    editorRef :React.RefObject<HTMLDivElement> = React.createRef<HTMLDivElement>();
-    editorInputRef :React.RefObject<InputRef> = React.createRef<InputRef>();
+    editorRef :React.RefObject<HTMLDivElement | null> = React.createRef<HTMLDivElement>();
+    editorInputRef :React.RefObject<InputRef | null> = React.createRef<InputRef>();
     editMouseDownInside :boolean = false;
     editingRecord :UserData | null = null;
-    editingValue :string = "";
+    editingValue :string | URLLike | "" = "";
     editRole :{
         isTechnician :boolean;
         available :UserData["available"];
@@ -274,7 +276,11 @@ export default class UserManage extends Pc<Props, State>{
             dataSize: 0,
             pageSize: 20,
             cachedInnerHeight: window.innerHeight,
-            filters: {},
+            filters: {
+                campus: null,
+                role: null,
+                openid: [true]
+            },
             editing: false,
             editorKey: Date.now(),
             editorTop: 0,
@@ -306,6 +312,7 @@ export default class UserManage extends Pc<Props, State>{
     }
     tableChange = (_pagination :TablePaginationConfig, filters :Record<typeof FilterableFields[number], (string | number | boolean | bigint)[] | null>, sorter :SorterResult<UserData> | SorterResult<UserData>[])=>{
         console.log(_pagination, filters, sorter);
+        this.columns[1].filteredValue = filters.openid;
         this.setState({filters}, ()=>this.updateTable(false));
     }
     updateTable = (isFirst :boolean)=>{
@@ -317,9 +324,7 @@ export default class UserManage extends Pc<Props, State>{
             this.setState({
                 pageSize,
                 currentPage: Math.max(Math.min(this.state.currentPage, Math.ceil(this.state.dataSize / pageSize)), 1)
-            }, ()=>{
-                this.getData().then(()=>this.setState({loading: false}));
-            });
+            }, ()=>this.getData().then(()=>this.setState({loading: false})));
         });
     }
     getDataSize = ()=>{
@@ -344,6 +349,7 @@ export default class UserManage extends Pc<Props, State>{
         const url = new URL(`${meta.apiDomain}/v1/status/getUser`);
         url.searchParams.append("page", this.state.currentPage + "");
         url.searchParams.append("limit", this.state.pageSize + "");
+        console.log(this.state.filters, this.state.filters.openid);
         if(this.state.filters.openid && this.state.filters.openid.length !== 2){
             if(this.state.filters.openid.includes(true)) url.searchParams.append("immed", "1");
             else url.searchParams.append("immed", "0");
@@ -378,13 +384,16 @@ export default class UserManage extends Pc<Props, State>{
         const response = await this.fetchData<UserDeleteResponse>(url, "POST", {}, {
             openid: record.openid
         });
-        if(response && response.success) this.props.sendMessage(response.message, "success");
+        if(response && response.success){
+            this.props.sendMessage(response.message, "success");
+            this.updateTable(false);
+        }
         else this.props.sendMessage("出现错误，请刷新重试", "error");
     }
     createUser = async ()=>{
         this.setState({createLoading: true});
         //todo
-        setTimeout(() => {
+        setTimeout(()=>{
             this.setState({
                 createLoading: false,
                 createOpened: false
@@ -430,7 +439,7 @@ export default class UserManage extends Pc<Props, State>{
         return await (await response).json();
     }
     startEdit = (data :UserData, event :React.MouseEvent<any>, field :typeof EditableFields[number])=>{
-        console.log(data, event, data[field]);
+        //console.log(data, event, data[field]);
         let element = event.target as HTMLElement;
         while(element.tagName !== "TD" && element.parentElement) element = element.parentElement;
         if(element.tagName === "TD"){
@@ -447,6 +456,7 @@ export default class UserManage extends Pc<Props, State>{
                 available: data.available,
                 wants: data.wants
             };
+            console.log(data);
             this.setState({
                 editing: true
             }, ()=>{
@@ -469,15 +479,15 @@ export default class UserManage extends Pc<Props, State>{
             });
         }
     }
-    editCancelMouseDownCB = (event :MouseEvent)=>{
-        let element = event.target as HTMLElement;
-        while(element !== this.editorRef.current! && !element.classList.contains("ant-select-dropdown") && element.tagName !== "BODY" && element.parentElement) element = element.parentElement;
+    editCancelMouseDownCB = (event :MouseEvent)=>this.editCancelCB(event.target as HTMLElement)
+    editCancelCB = (element :HTMLElement)=>{
+        while(element !== this.editorRef.current! && !element.classList.contains("ant-select-dropdown") && !element.classList.contains("ant-tooltip") && element.tagName !== "BODY" && element.parentElement) element = element.parentElement;
         this.editMouseDownInside = element.tagName !== "BODY";
     }
     editCancelMouseUpCB = (event :MouseEvent)=>{
         if(!this.editMouseDownInside){
             let element = event.target as HTMLElement;
-            while(element !== this.editorRef.current! && !element.classList.contains("ant-select-dropdown") && element.tagName !== "BODY" && element.parentElement) element = element.parentElement;
+            while(element !== this.editorRef.current! && !element.classList.contains("ant-select-dropdown") && !element.classList.contains("ant-tooltip") && element.tagName !== "BODY" && element.parentElement) element = element.parentElement;
             if(element.tagName === "BODY") this.endEdit(true);
         }
     }
@@ -485,14 +495,30 @@ export default class UserManage extends Pc<Props, State>{
         if(event.key === "Enter") this.endEdit(false);
         else if(event.key === "Escape") this.endEdit(true);
     }
-    endEdit = (cancel :boolean)=>{
+    endEdit = async (cancel :boolean)=>{
         document.removeEventListener("mousedown", this.editCancelMouseDownCB);
         document.removeEventListener("mouseup", this.editCancelMouseUpCB);
         document.removeEventListener("keydown", this.editCancelKeyCB);
         if(!cancel){
-            console.log("save", this.editingField, this.editingValue, this.editingRecord);
-            if(this.editingField == "role") console.log(this.editRole);
-            //todo: 提交数据
+            //console.log("save", this.editingField, this.editingValue, this.editingRecord);
+            if(this.editingField === "role"){
+                this.editingRecord!["available"] = this.editRole!.available;
+                this.editingRecord!["wants"] = this.editRole!.wants;
+                this.editingRecord!["role"] = this.editingValue as UserData["role"];
+            }
+            //因为有URLLike自定义属性，这个东西变成了never。
+            (this.editingRecord![this.editingField!] as any) = this.editingValue as any;
+            console.log(this.editingRecord);
+            const response = await this.fetchData<{success :boolean; changedFields :Partial<UserData>}>(`${meta.apiDomain}/v1/user/setuser`, "POST", {}, {
+                ...this.editingRecord!,
+                //fixme:这个东西能让整个系统寿命减少至少一年！
+                uid: this.editingRecord!.id
+            });
+            if(response && response.success){
+                console.log(response);
+                this.updateTable(false);
+            }
+            else this.props.sendMessage("编辑失败，请刷新重试", "error");
         }
         if(this.editingField === "role") this.editRole = null;
         this.editingRecord = null;
@@ -505,111 +531,116 @@ export default class UserManage extends Pc<Props, State>{
         });
     }
     render() :React.ReactNode{
-        return(
-            <div id="users" className={styles.users}>
-                <div className={styles.search}>
-                    <Input onChange={this.customChangeCB} prefix={<SearchOutlined />} placeholder="搜索本页内容..." />
-                </div>
-                <Table<UserData>
-                    columns={this.columns}
-                    rowKey={record=>record.id}
-                    loading={this.state.loading}
-                    dataSource={this.state.datas}
-                    pagination={false}
-                    scroll={{y: this.state.cachedInnerHeight - getPx("8rem") - 43}}
-                    onChange={this.tableChange}
-                />
-                <div className={styles.pagination}>
-                    <Pagination defaultCurrent={1} current={this.state.currentPage} total={this.state.dataSize} showSizeChanger onShowSizeChange={this.changePageSize} onChange={this.pageChange} pageSize={this.state.pageSize} pageSizeOptions={[5, 10, 20, 30, 40, 50, 75, 100, 200]} />
-                </div>
-                <div ref={this.editorRef} className={`${mainStyles.noselect} ${styles.panel}`} style={{
-                    visibility: this.state.editorVisible ? "visible" : "hidden",
-                    border: this.editingField === "role" ? "solid .125rem #5e87c9" : "",
-                    top: this.state.editorTop,
-                    left: this.state.editorLeft
-                }}>{this.state.editing ?
-                    this.editingField === "campus" ?
-                    <Select
-                        className={styles.campusSelect}
-                        defaultValue={EditRolePermittedValues.includes(this.editingValue) ? this.editingValue : ""}
-                        onChange={data=>this.editingValue = data}
-                    >
-                        <Select.Option key="江安">江安</Select.Option>
-                        <Select.Option key="望江">望江</Select.Option>
-                        <Select.Option key="华西">华西</Select.Option>
-                    </Select>
-                    : this.editingField === "role" ?
-                    <div className={styles.editRole}>
-                        <Radio.Group
-                            defaultValue={this.editingValue}
-                            onChange={event=>{
-                                this.editingValue = event.target.value;
-                                this.editRole = {
-                                    ...this.editRole!,
-                                    isTechnician: event.target.value === "technician"
-                                };
-                                this.setState({editorKey: this.state.editorKey + 1});
-                            }}
-                            options={[
-                                {
-                                    label: "技术员",
-                                    value: "technician"
-                                },
-                                {
-                                    label: "用户",
-                                    value: "user"
-                                }
-                            ]}
-                            optionType="button"
-                        />
-                        {this.editRole!.isTechnician ? <>
-                            <label className={styles.available}>
-                                <Checkbox
-                                    title="是否可用"
-                                    defaultChecked={this.editRole!.available === "1"}
-                                    onChange={event=>{
-                                        console.log(event);
-                                        this.editRole!.available = event.target.checked ? "1" : "0";
-                                    }}
-                                />可用
-                            </label>
-                            <label>接单意愿
-                                <Slider
-                                    onChange={data=>{
-                                        this.editRole = {
-                                            ...this.editRole!,
-                                            wants: convertWantsB(data)!
-                                        };
-                                    }}
-                                    defaultValue={convertWants(this.editRole!.wants)}
-                                    disabled={!this.editRole!.isTechnician}
-                                    step={null}
-                                    marks={{0:"a",25:"b",50:"c",75:"d",100:"e"}}
-                                    tooltip={{formatter: value=>EditWantsMarks[value ?? 0]}}
-                                />
-                            </label></> : <label>报修限额
-                                <Slider
-                                    onChange={data=>{
-                                        this.editRole = {
-                                            ...this.editRole!,
-                                            available: convertAvailableB(data)!
-                                        };
-                                    }}
-                                    defaultValue={parseInt(this.editRole!.available)}
-                                    step={20}
-                                    tooltip={{formatter: value=>(value ?? 0) / 20}}
-                                />
-                            </label>
-                        }
-                    </div>
-                    :<Input
-                        style={{width: this.editingField === "email" ? "14rem" : this.editingField === "nickname" ? "7rem" : "10rem"}}
-                        ref={this.editorInputRef}
-                        placeholder="输入值..."
-                        onChange={event=>this.editingValue = event.target.value}
-                        defaultValue={this.editingValue} />
-                : null}</div>
+        return(<div id="users" className={mainStyles.app}>
+            <div className={styles.search}>
+                <Input onChange={this.customChangeCB} prefix={<SearchOutlined />} placeholder="搜索本页内容..." />
             </div>
-        );
+            <Table<UserData>
+                columns={this.columns}
+                rowKey={record=>record.id}
+                loading={this.state.loading}
+                dataSource={this.state.datas}
+                pagination={false}
+                scroll={{y: this.state.cachedInnerHeight - getPx("8rem") - 43}}
+                onChange={this.tableChange}
+            />
+            <div className={styles.pagination}>
+                <Pagination defaultCurrent={1} current={this.state.currentPage} total={this.state.dataSize} showSizeChanger onShowSizeChange={this.changePageSize} onChange={this.pageChange} pageSize={this.state.pageSize} pageSizeOptions={[5, 10, 20, 30, 40, 50, 75, 100, 200]} />
+            </div>
+            <div ref={this.editorRef} className={`${mainStyles.noselect} ${styles.panel}`} style={{
+                visibility: this.state.editorVisible ? "visible" : "hidden",
+                border: this.editingField === "role" ? "solid .125rem #5e87c9" : "",
+                top: this.state.editorTop,
+                left: this.state.editorLeft
+            }}>{this.state.editing ?
+                this.editingField === "campus" ?
+                <Select
+                    className={styles.campusSelect}
+                    defaultValue={EditRolePermittedValues.includes(this.editingValue as unknown as string) ? this.editingValue : ""}
+                    onChange={data=>this.editingValue = data}
+                >
+                    <Select.Option key="江安">江安</Select.Option>
+                    <Select.Option key="望江">望江</Select.Option>
+                    <Select.Option key="华西">华西</Select.Option>
+                </Select>
+                : this.editingField === "role" ?
+                <div className={styles.editRole}>
+                    <Radio.Group
+                        defaultValue={this.editingValue}
+                        onChange={event=>{
+                            const changed = this.editingValue !== event.target.value;
+                            this.editRole = {
+                                available: changed ? event.target.value === "technician" ? "1" : event.target.value === "user" ? "5" : this.editRole!.available : this.editRole!.available,
+                                wants: this.editRole!.wants,
+                                isTechnician: event.target.value === "technician"
+                            };
+                            this.editingValue = event.target.value;
+                            this.setState({editorKey: this.state.editorKey + 1});
+                        }}
+                        options={[
+                            {
+                                label: "技术员",
+                                value: "technician"
+                            },
+                            {
+                                label: "用户",
+                                value: "user"
+                            }
+                        ]}
+                        optionType="button"
+                    />
+                    {this.editRole!.isTechnician ? <>
+                        <label className={styles.available}>
+                            <Checkbox
+                                title="是否可用"
+                                defaultChecked={this.editRole!.available === "1"}
+                                onChange={event=>{
+                                    console.log(event);
+                                    this.editRole!.available = event.target.checked ? "1" : "0";
+                                }}
+                            />可用
+                            <div className={styles.tipWrapper}>
+                                <span>原则上</span>
+                                <span>不修改</span>
+                            </div>
+                        </label>
+                        <label>接单意愿
+                            <Slider
+                                onChange={data=>{
+                                    this.editRole = {
+                                        ...this.editRole!,
+                                        wants: convertWantsB(data)!
+                                    };
+                                }}
+                                onFocus={event=>this.editCancelCB(event.target)}
+                                defaultValue={convertWants(this.editRole!.wants)}
+                                disabled={!this.editRole!.isTechnician}
+                                step={null}
+                                marks={{0:"a",25:"b",50:"c",75:"d",100:"e"}}
+                                tooltip={{formatter: value=>EditWantsMarks[value ?? 0]}}
+                            />
+                        </label></> : <label>报修余额
+                            <Slider
+                                onChange={data=>{
+                                    this.editRole = {
+                                        ...this.editRole!,
+                                        available: convertAvailableB(data)!
+                                    };
+                                }}
+                                defaultValue={parseInt(this.editRole!.available) * 20}
+                                step={20}
+                                tooltip={{formatter: value=>(value ?? 0) / 20}}
+                            />
+                        </label>
+                    }
+                </div>
+                :<Input
+                    style={{width: this.editingField === "email" ? "14rem" : this.editingField === "nickname" ? "7rem" : "10rem"}}
+                    ref={this.editorInputRef}
+                    placeholder="输入值..."
+                    onChange={event=>this.editingValue = event.target.value}
+                    defaultValue={this.editingValue as unknown as string} />
+            : null}</div>
+        </div>);
     }
 }

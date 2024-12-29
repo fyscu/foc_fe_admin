@@ -1,48 +1,49 @@
 {
-  "name": "foc_fe_admin",
-  "homepage": "/",
-  "version": "0.12.2",
-  "author": "LJM12914",
-  "private": true,
-  "dependencies": {
-    "@ant-design/icons": "^5.3.7",
-    "@ant-design/pro-components": "^2.7.15",
-    "@types/lodash": "^4.17.13",
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "antd": "^5.18.0",
-    "canvas-confetti": "^1.9.3",
-    "immer": "^10.1.1",
-    "localforage": "^1.10.0",
-    "lodash": "^4.17.21",
-    "react": "^18.3.1",
-    "react-canvas-confetti": "^2.0.7",
-    "react-dom": "^18.3.1",
-    "react-scripts": "^5.0.1",
-    "typescript": "^4.9.5"
-  },
-  "devDependencies": {
-    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
-  },
-  "scripts": {
-    "start": "set PORT=21999 && react-scripts start",
-    "build": "react-scripts build"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+    "name": "foc_fe_admin",
+    "homepage": "/",
+    "version": "0.13.0",
+    "author": "LJM12914",
+    "private": true,
+    "dependencies": {
+        "@ant-design/icons": "^5.5.2",
+        "@ant-design/pro-components": "^2.8.2",
+        "@types/echarts": "^4.9.22",
+        "@types/react": "^19.0.2",
+        "@types/react-dom": "^19.0.2",
+        "antd": "^5.22.7",
+        "canvas-confetti": "^1.9.3",
+        "echarts": "^5.6.0",
+        "echarts-for-react": "^3.0.2",
+        "localforage": "^1.10.0",
+        "react": "^18.3.1",
+        "react-canvas-confetti": "^2.0.7",
+        "react-countup": "^6.5.3",
+        "react-dom": "^18.3.1",
+        "react-scripts": "^5.0.1",
+        "typescript": "^4.9.5"
+    },
+    "devDependencies": {
+        "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+    },
+    "scripts": {
+        "start": "set PORT=21999 && react-scripts start",
+        "build": "react-scripts build"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
 }

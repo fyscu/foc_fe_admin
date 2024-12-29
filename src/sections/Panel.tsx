@@ -19,19 +19,20 @@ type Props = {
 
 type State = {
     currentKey :string;
+    menuRefresher :number;
     aboutModalOpened :boolean;
 };
 
 /**@once */
 export default class Panel extends Cp<Props, State>{
-    static items :ItemType<MenuItemType>[] = [
+    items :ItemType<MenuItemType>[] = [
         {
             key: "users",
             label: "用户管理",
             icon: <IdcardOutlined />
         },
         {
-            key: "issues",
+            key: "orders",
             label: "工单管理",
             icon: <SnippetsOutlined />
         },
@@ -51,17 +52,29 @@ export default class Panel extends Cp<Props, State>{
             icon: <SettingOutlined />
         }
     ];
+    mapping = ["users", "orders", "events", "stats", "settings"];
     constructor(props :Props){
         super(props);
+        const hash = window.location.hash.substring(1, window.location.hash.length), index = this.mapping.indexOf(hash);
         this.state = {
-            currentKey: "users",
-            aboutModalOpened: false
+            currentKey: index !== -1 ? hash : "users",
+            aboutModalOpened: false,
+            menuRefresher: Date.now()
         };
     }
-    changeTab = (info :MenuInfo)=>{
-        this.setState({
-            currentKey: info.key
+    componentDidMount(){
+        window.addEventListener("popstate", this.route);
+    }
+    route = (event :PopStateEvent)=>{
+        const hash = window.location.hash.substring(1, window.location.hash.length), index = this.mapping.indexOf(hash);
+        if(index !== -1) this.setState({
+            currentKey: hash,
+            menuRefresher: this.state.menuRefresher + 1
         });
+    }
+    changeTab = (info :MenuInfo)=>{
+        this.setState({currentKey: info.key});
+        window.history.pushState("", "", `#${info.key}`);
     }
     render() :React.ReactNode{
         return(
@@ -70,13 +83,14 @@ export default class Panel extends Cp<Props, State>{
                 flexFlow: "row nowrap"
             }}>
                 <Menu className={mainStyles.noselect}
+                    key={this.state.menuRefresher}
                     style={{
                         width: "10rem",
                         height: "100dvh"
                     }}
-                    defaultSelectedKeys={["users"]}
+                    defaultSelectedKeys={[this.state.currentKey]}
                     mode="inline"
-                    items={Panel.items}
+                    items={this.items}
                     onClick={this.changeTab}
                 />
                 <div style={{
@@ -101,7 +115,7 @@ export default class Panel extends Cp<Props, State>{
                     </div>
                 </div>
                 {this.state.currentKey === "users" ? <UserManage sendMessage={this.props.sendMessage} ATFailCallBack={this.props.ATFailCallBack} /> : null}
-                {this.state.currentKey === "issues" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
+                {this.state.currentKey === "orders" ? <OrderManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "events" ? <EventManage ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "stats" ? <Statistics ATFailCallBack={this.props.ATFailCallBack} /> : null}
                 {this.state.currentKey === "settings" ? <Settings fromLucky={false} ATFailCallBack={this.props.ATFailCallBack} /> : null}

@@ -19,8 +19,8 @@ export default class EventManage extends Cp<Props, State>{
         
     }
     render() :React.ReactNode{
-        return(
-            <div>event</div>
-        );
+        return(<div id="events" className={mainStyles.app}>
+            <div>events</div>
+        </div>);
     }
 }

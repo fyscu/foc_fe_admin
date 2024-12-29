@@ -1,7 +1,7 @@
 ﻿const
-    version = "0.12.2",
+    version = "0.13.0",
     dev = true,
-    date = "2024.12.26",
+    date = "2024.12.29",
     api = "https://focapi.feiyang.ac.cn",
     about = (()=>(<div style={{fontSize: 16}}>
         <div style={{display: "flex", justifyContent: "center"}}><img src="https://feiyang.ac.cn/img/logo1080.png" height={200} alt="logo" /></div>

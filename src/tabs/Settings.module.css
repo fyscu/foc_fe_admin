@@ -1,0 +1,6 @@
+﻿.outer{
+    display: flex;
+    flex-flow: column nowrap;
+    gap: 2rem;
+    overflow-y: auto;
+}

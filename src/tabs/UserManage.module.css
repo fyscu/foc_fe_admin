@@ -1,9 +1,4 @@
-﻿.users{
-    display: flex;
-    flex-flow: column nowrap;
-    width: calc(100dvw - 10rem);
-}
-.search{
+﻿.search{
     height: 2rem;
     display: flex;
     flex-flow: row nowrap;
@@ -29,6 +24,7 @@
     display: flex;
     flex-flow: row nowrap;
     gap: .5rem;
+    align-items: center;
 }
 .openid{
     display: flex;
@@ -69,4 +65,11 @@
 }
 .campusSelect{
     width: 5rem;
+}
+.tipWrapper{
+    padding-left: .4rem;
+    display: flex;
+    flex-flow: column nowrap;
+    color: #888;
+    font-size: .8rem;
 }

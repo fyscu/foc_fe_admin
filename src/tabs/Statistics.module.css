@@ -1,0 +1,8 @@
+﻿.upper{
+    display: flex;
+    flex-flow: row nowrap;
+}
+.lower{
+    display: flex;
+    flex-flow: row nowrap;
+}

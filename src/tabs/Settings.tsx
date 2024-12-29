@@ -1,4 +1,5 @@
 ﻿import React, { Component as Cp } from "react";
+import styles from "./Settings.module.css";
 import localforage from "localforage";
 import { Button, ConfigProvider, Popconfirm } from "antd";
 import { UserData } from "../schema/user";
@@ -38,12 +39,8 @@ export default class Settings extends Cp<Props, State>{
             <div id="settings" style={{
                 width: this.props.fromLucky ? "" : "calc(100dvw - 10rem)"
             }}>
-                <div style={{
-                    display: "flex",
+                <div className={styles.outer} style={{
                     margin: this.props.fromLucky ? "" : "3rem 3rem 0",
-                    flexFlow: "column nowrap",
-                    gap: "2rem",
-                    overflowY: "auto",
                     minHeight: this.props.fromLucky ? "50dvh" : "calc(100dvh - 3rem)"
                 }}>
                     <div style={{display: "inline-flex", flexFlow: "row nowarp", alignItems: "center", gap: ".25rem"}}>当前登录账号：{this.state.accountInfo ?

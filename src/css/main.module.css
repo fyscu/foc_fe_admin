@@ -19,3 +19,8 @@
     width: 100dvw;
     overflow: clip;
 }
+.app{
+    display: flex;
+    flex-flow: column nowrap;
+    width: calc(100dvw - 10rem);
+}
