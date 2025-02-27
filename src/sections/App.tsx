@@ -4,7 +4,7 @@ import Login from "./Login";
 import { ConfigProvider, message, Spin, theme } from "antd";
 import { LoadingOutlined } from "@ant-design/icons";
 import Panel from "./Panel";
-import zhCN from 'antd/locale/zh_CN';
+import zhCN from "antd/locale/zh_CN";
 import localforage from "localforage";
 import { load } from "..";
 import { isLoggedIn, login, LoginResponse } from "../schema/login";

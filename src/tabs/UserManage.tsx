@@ -106,10 +106,10 @@ export default class UserManage extends Pc<Props, State>{
                     value: false
                 }
             ],
-            ellipsis: true,
-            width: 180,
             defaultFilteredValue: [true],
             filteredValue: [true],
+            ellipsis: true,
+            width: 180,
             render: openid=>openid ?
                 <div className={`openid ${styles.openid}`}>
                     <Text copyable={{text: openid, tooltips: false}} />
@@ -147,6 +147,7 @@ export default class UserManage extends Pc<Props, State>{
                     value: "华西"
                 }
             ],
+            filteredValue: [],
             align: "left",
             render: (campus, entry)=>entry.immed === "1" ? campus : "未迁移",
             width: 70,
@@ -176,6 +177,7 @@ export default class UserManage extends Pc<Props, State>{
                     value: "user"
                 }
             ],
+            filteredValue: [],
             render: role=>role === "admin" ? "管理员" : role === "technician" ? <Tooltip mouseEnterDelay={0.5} title="双击编辑接单意愿">技术员</Tooltip> : <Tooltip mouseEnterDelay={0.5} title="双击编辑报修余额">用户</Tooltip>,
             //对，这里需要手动和 dataIndex 同步，这是我目前想出最好的获取字段名的方案了:)
             onCell: (data :UserData)=>{

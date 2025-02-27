@@ -13,7 +13,7 @@ type Props = {
 /**@once */
 export default function Login(props :Props){
     const
-        ref = useRef<ProFormInstance<LoginFormData> | undefined>(),
+        ref = useRef<ProFormInstance<LoginFormData> | undefined>(null),
         [aboutModalOpened, setAboutModalOpened] = useState(false),
         [loading, setLoading] = useState(false),
         [messageAPI, contextHolder] = message.useMessage(),
